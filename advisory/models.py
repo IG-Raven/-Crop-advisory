@@ -22,9 +22,23 @@ class CropRule(models.Model):
     min_value = models.FloatField(null=True, blank=True)
     max_value = models.FloatField(null=True, blank=True)
     action = models.TextField()
-    severity = models.CharField(max_length=50, choices=[('low', 'Low'), ('medium', 'Medium'), ('high', 'High')])
+    severity = models.CharField(max_length=50, choices=[('low', 'Low'), ('moderate', 'Moderate'), ('high', 'High')])
     source = models.CharField(max_length=200, blank=True)
     def __str__(self):
         return f"{self.crop.name} - {self.district.name}"
     
-class
+class WeatherData(models.Model):
+    district = models.ForeignKey(District, on_delete=models.CASCADE)
+    temperature = models.FloatField()
+    humidity = models.FloatField()
+    rainfall = models.FloatField()
+    wind_speed = models.FloatField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+class Advisory(models.Model):
+    district = models.ForeignKey(District, on_delete=models.CASCADE)
+    crop = models.ForeignKey(Crop, on_delete=models.CASCADE)
+    weather = models.ForeignKey(WeatherData, on_delete=models.CASCADE)
+    suitability = models.CharField(max_length=20)
+    recommendation = models.JSONField()
+    generated_at = models.DateTimeField(auto_now_add=True)

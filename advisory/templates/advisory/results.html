@@ -1,0 +1,51 @@
+{% extends "advisory/base.html" %}
+{% block content %}
+<style>
+  .results-wrap { padding: 40px; }
+  .stat-box { border-radius: 10px; padding: 18px; text-align: center; color: white; }
+  .advisory-card {
+    background: white; border-radius: 10px; padding: 20px; margin-top: 20px;
+    border-left: 6px solid;
+  }
+</style>
+<div class="results-wrap">
+  <h4 style="color:#1B4332;">Advisory for {{ crop }} in {{ district }}</h4>
+  <div class="row g-3 mt-2">
+    <div class="col-md-4">
+      <div class="stat-box" style="background:#F59E0B;">
+        <div style="font-size:13px;">Temperature</div>
+        <div style="font-size:24px;font-weight:700;">{{ weather.temperature }}°C</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-box" style="background:#7EC8E3;">
+        <div style="font-size:13px;">Rainfall</div>
+        <div style="font-size:24px;font-weight:700;">{{ weather.rainfall }}mm</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-box" style="background:#8B5CF6;">
+        <div style="font-size:13px;">Humidity</div>
+        <div style="font-size:24px;font-weight:700;">{{ weather.humidity }}%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="advisory-card" style="border-color:
+    {% if advisory.suitability == 'suitable' %}#22C55E
+    {% elif advisory.suitability == 'warning' %}#F59E0B
+    {% else %}#EF4444{% endif %};">
+    <strong style="color:
+      {% if advisory.suitability == 'suitable' %}#22C55E
+      {% elif advisory.suitability == 'warning' %}#F59E0B
+      {% else %}#EF4444{% endif %};">
+      {{ advisory.suitability|upper }}
+    </strong>
+    <ul class="mt-2 mb-0">
+      {% for r in advisory.recommendations %}<li>{{ r }}</li>{% endfor %}
+    </ul>
+  </div>
+
+  <a href="/" class="btn btn-outline-success mt-4">Back to Home</a>
+</div>
+{% endblock %}

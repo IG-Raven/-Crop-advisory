@@ -1,0 +1,22 @@
+{% extends "advisory/base.html" %}
+{% block content %}
+<style>
+  .login-wrap { padding: 60px 40px; max-width: 420px; margin: 0 auto; }
+  .login-card { background: white; border-radius: 12px; padding: 32px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+  .login-card h4 { color: #1B4332; font-weight: 700; margin-bottom: 20px; }
+</style>
+<div class="login-wrap">
+  <div class="login-card">
+    <h4>Login</h4>
+    <form method="post">
+      {% csrf_token %}
+      <label class="form-label">Phone Number</label>
+      <input type="tel" name="phone" class="form-control mb-3" placeholder="Eg: 9876543210" required>
+      <label class="form-label">Password</label>
+      <input type="password" name="password" class="form-control mb-3" placeholder="••••••••" required>
+      <button class="btn w-100" style="background:#1B4332;color:white;font-weight:600;">Sign In</button>
+    </form>
+    <p class="mt-3 text-center" style="font-size:14px;">Not a member? <a href="/register/">Sign up here</a></p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}CropAdvisory Nepal{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+  html, body { margin: 0; padding: 0; }
+  body { background: #F9FAFB; font-family: -apple-system, Segoe UI, Roboto, sans-serif; }
+
+  .site-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 16px 32px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    box-sizing: border-box;
+  }
+
+  .navbar-brand {
+    color: white !important;
+    font-weight: 700;
+    font-size: 20px;
+    text-decoration: none !important;
+  }
+
+  .site-nav a.nav-link {
+    color: white !important;
+    font-weight: 500;
+    text-decoration: none !important;
+    white-space: nowrap;
+  }
+  .site-nav a.nav-link:hover { color: #7EC8E3 !important; }
+
+  .lang-group {
+    display: flex;
+    align-items: center;
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 3px;
+    margin-right: 16px;
+    flex-shrink: 0;
+  }
+  .lang-btn {
+    background: transparent;
+    color: rgba(255,255,255,0.85);
+    border: none;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+  }
+  .lang-btn:hover { color: white; }
+  .lang-btn.active {
+    background: white;
+    color: #1B4332;
+    font-weight: 600;
+  }
+
+  .btn-login-nav {
+    color: white !important;
+    font-weight: 500;
+    margin-right: 16px;
+    text-decoration: none !important;
+    white-space: nowrap;
+  }
+  .btn-login-nav:hover { color: #7EC8E3 !important; }
+
+  .btn-signup-nav {
+    background: #7EC8E3;
+    color: #1B4332 !important;
+    border-radius: 6px;
+    padding: 7px 20px;
+    font-weight: 600;
+    text-decoration: none !important;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+  .btn-signup-nav:hover { background: #5FB8D9; }
+  </style>
+</head>
+<body>
+<nav class="site-nav d-flex align-items-center justify-content-between">
+  <a class="navbar-brand" href="/">CropAdvisory Nepal</a>
+  <div class="d-none d-md-flex">
+    <a href="/" class="nav-link px-3">Home</a>
+    <a href="/dashboard/" class="nav-link px-3">Dashboard</a>
+    <a href="/about/" class="nav-link px-3">About</a>
+  </div>
+  <div class="d-flex align-items-center">
+    <button class="lang-btn active">English</button>
+    <button class="lang-btn">नेपाली</button>
+    <a href="/login/" class="btn-login-nav ms-2">Login</a>
+    <a href="/register/" class="btn-signup-nav">Sign up</a>
+  </div>
+</nav>
+<div class="container-fluid px-0">
+  {% block content %}{% endblock %}
+</div>
+</body>
+</html>

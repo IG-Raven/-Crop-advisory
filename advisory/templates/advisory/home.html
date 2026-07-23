@@ -1,0 +1,141 @@
+{% extends "advisory/base.html" %}
+{% load static %}
+{% block content %}
+<style>
+.hero {
+  background: linear-gradient(rgba(27,67,50,0.55), rgba(27,67,50,0.55)),
+              url('{% static "advisory/images/back.png" %}') center/cover;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: white;
+  padding: 40px;
+  border-bottom: 3px solid #7EC8E3;
+}
+
+  html, body { margin: 0; padding: 0; height: 100%; }
+  .hero h1 { font-size: 42px; font-weight: 800; margin-bottom: 10px; color: #F0FDF4; }
+  .hero h1 .accent { color: #7EC8E3; }
+  .hero p { font-size: 16px; margin-bottom: 30px; }
+  .crop-icons { font-size: 40px; margin-bottom: 30px; }
+  .crop-icons span { margin: 0 20px; }
+
+  .hero .btn-login {
+    background: white; color: #1B4332; border: none;
+    padding: 10px 40px; border-radius: 6px; font-weight: 600;
+  }
+
+  .hero .signup-link { display: block; margin-top: 14px; color: white; font-size: 14px; }
+  .hero .signup-link a { color: white; font-weight: 600; text-decoration: underline; }
+  .feature-grid { background: #E9ECEB; padding: 50px 40px; }
+
+  .feature-card {
+    background: #DCE4DE; border-radius: 10px; padding: 40px 20px;
+    text-align: center; height: 100%;
+  }
+
+  .feature-card .icon { font-size: 34px; margin-bottom: 12px; }
+  .feature-card .title { font-weight: 700; font-size: 18px; }
+  .feature-card .title.blue { color: #0078D4; }
+  .feature-card .title.green { color: #1B4332; }
+  .feature-card .title.red { color: #EF4444; }
+  .feature-card .title.gray { color: #6B7280; }
+
+  .advisory-form {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+  margin-bottom: 20px;
+}
+
+.advisory-form .form-select {
+  width: 180px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 2px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.15);
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  backdrop-filter: blur(4px);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.advisory-form .form-select option {
+  background: #1B4332;
+  color: white;
+}
+
+.advisory-form .form-select:focus {
+  border-color: #7EC8E3;
+  background: rgba(255,255,255,0.25);
+}
+
+.btn-get-advisory {
+  padding: 10px 28px;
+  background: #7EC8E3;
+  color: #1B4332;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.btn-get-advisory:hover {
+  background: #52B788;
+  color: white;
+}
+</style>
+
+<div class="hero">
+  <h1>Smart Crop Advisory for Nepal's Farmers</h1>
+  <p>Get real-time weather based crop advice for your district</p>
+  <div class="crop-icons"><span>🌾</span><span>🌱</span><span>🌽</span></div>
+
+{% if error %}
+<div style="background:rgba(220,38,38,0.85); color:white; padding:10px 20px;
+            border-radius:8px; margin-bottom:16px; font-size:14px; font-weight:600;">
+  ⚠ {{ error }}
+</div>
+{% endif %}
+
+  <form method="post" action="/advisory/" class="advisory-form">
+    {% csrf_token %}
+    <select name="district" class="form-select" required>
+      <option value="" disabled selected>Select District</option>
+      {% for d in districts %}<option value="{{ d.name }}">{{ d.name }}</option>{% endfor %}
+    </select>
+    <select name="crop" class="form-select" required>
+      <option value="" disabled selected>Select Crop</option>
+      {% for c in crops %}<option value="{{ c.name }}">{{ c.name }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn-get-advisory">Get Advisory</button>
+  </form>
+
+  <span class="signup-link">Not registered? <a href="/register/">Sign up here</a></span>
+</div>
+
+<div class="feature-grid">
+  <div class="row g-4 mb-4">
+    <div class="col-md-4"><div class="feature-card"><div class="icon">🌤️</div><div class="title blue">Weather Advisory</div></div></div>
+    <div class="col-md-4"><div class="feature-card"><div class="icon">🌾</div><div class="title green">Crop Suitability</div></div></div>
+    <div class="col-md-4"><div class="feature-card"><div class="icon">⚠️</div><div class="title red">Risk Alerts</div></div></div>
+  </div>
+  <div class="row g-4">
+    <div class="col-md-4"><div class="feature-card"><div class="icon">💵</div><div class="title green">Market Prices</div></div></div>
+    <div class="col-md-4"><div class="feature-card"><div class="icon">💬</div><div class="title gray">Feedback</div></div></div>
+  </div>
+</div>
+{% endblock %}
