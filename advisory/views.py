@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.core.cache import cache
 from .models import District, Crop, CropRule, WeatherData, Advisory
 from .weather_utils import fetch_weather
@@ -43,13 +43,26 @@ def results(request):
     })
     
 def login_view(request):
+    if request.method == "POST":
+        return redirect("/dashboard/")
     return render(request, "advisory/login.html")
+
+def dashboard_view(request):
+    return render(request, "advisory/dashboard.html", {
+        "farmer_name": "Ram Bahadur",
+        "farmer_name_ne": "राम बहादुर",
+        "district": "Chitwan",
+        "ward": "4",
+        "crop": "Rice (Dhan)",
+        "temp": "32°C, Sunny",
+        "humidity": "45%",
+    })
+
+def weather_data_view(request):
+    return render(request, "advisory/weather_data.html")
 
 def register_view(request):
     return render(request, "advisory/register.html")
-
-def dashboard_view(request):
-    return HttpResponse("Dashboard coming soon.")
 
 def about_view(request):
     return HttpResponse("About page coming soon.")

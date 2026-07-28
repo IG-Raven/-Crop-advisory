@@ -87,22 +87,26 @@
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div class="collapse navbar-collapse" id="navMenu">
-    <ul class="navbar-nav mx-auto" style="gap: 20px;">
-      <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
-      <li class="nav-item"><a href="/dashboard/" class="nav-link">Dashboard</a></li>
-      <li class="nav-item"><a href="/about/" class="nav-link">About</a></li>
-    </ul>
-  
-    <div class="d-flex align-items-center">
-      <div class="lang-group">
-        <button class="lang-btn active">English</button>
-        <button class="lang-btn">नेपाली</button>
-      </div>
-      <a href="/login/" class="btn-login-nav">Login</a>
-      <a href="/register/" class="btn-signup-nav">Sign up</a>
+  <div class="collapse navbar-collapse" id="navMenu">
+  <ul class="navbar-nav mx-auto">
+    {% block nav_links %}
+    <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
+    <li class="nav-item"><a href="/dashboard/" class="nav-link">Dashboard</a></li>
+    <li class="nav-item"><a href="/about/" class="nav-link">About</a></li>
+    {% endblock %}
+  </ul>
+
+  <div class="d-flex align-items-center">
+    {% block nav_right %}
+    <div class="lang-group">
+      <button class="lang-btn active">English</button>
+      <button class="lang-btn">नेपाली</button>
     </div>
+    <a href="/login/" class="btn-login-nav">Login</a>
+    <a href="/register/" class="btn-signup-nav">Sign up</a>
+    {% endblock %}
   </div>
+</div>
 
   </div>
 </nav>

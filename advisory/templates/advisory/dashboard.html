@@ -1,0 +1,207 @@
+{% extends "advisory/base.html" %}
+{% block nav_links %}
+<li class="nav-item"><a href="/" class="nav-link">Home</a></li>
+<li class="nav-item"><a href="/dashboard/" class="nav-link">Dashboard</a></li>
+{% endblock %}
+
+{% block nav_right %}
+<div class="lang-group">
+  <button class="lang-btn active">English</button>
+  <button class="lang-btn">नेपाली</button>
+</div>
+{% endblock %}
+{% block content %}
+<style>
+  .dash-wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+  .greet-card h2 {
+    font-size:28px;
+    margin:2px 0 8px;
+  }
+  
+  .greet-card .sub {
+      margin-bottom:8px;
+  }
+
+  .greet-card .label { 
+    font-size: 13px; 
+    opacity: 0.85; 
+  }
+
+  .greet-card h2 { 
+    font-size: 26px; 
+    font-weight: 700; 
+    margin: 4px 0; 
+  }
+
+  .greet-card .sub { 
+    font-size: 15px; 
+    opacity: 0.9; 
+    margin-bottom: 10px; 
+  }
+  
+  .greet-card .meta { 
+    font-size: 13px; 
+    opacity: 0.85; 
+  }
+
+  .greet-card .meta span { 
+    display: inline-block; 
+    width: 6px; 
+    height: 6px; 
+    border-radius: 50%; 
+    background: #F59E0B; 
+    margin-right: 6px; 
+  }
+
+  .weather-strip{
+    background:#F7FCF8;
+    border:1px solid #DCEFE3;
+    padding:16px 22px;
+    margin-bottom:18px;
+  }
+
+  .temp{
+    font-size:20px;
+  }
+
+  .weather-strip:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: inherit; }
+
+  .weather-strip .left { display: flex; align-items: center; gap: 14px; }
+
+  .weather-strip .icon { font-size: 32px; }
+
+  .weather-strip .label { font-size: 13px; color: #6B7280; }
+
+  .weather-strip .temp { font-size: 18px; font-weight: 700; color: #1B4332; }
+
+  .weather-strip .humidity { text-align: right; }
+
+  .weather-strip .humidity .val { font-weight: 700; color: #1B4332; }
+
+
+  .advisory-cta {
+    background: #F59E0B; border-radius: 10px; padding: 20px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    text-decoration: none; color: #1B4332; margin-bottom: 24px;
+  }
+  .advisory-cta:hover { color: #1B4332; opacity: 0.95; }
+  .advisory-cta .title { font-weight: 700; font-size: 17px; }
+  .advisory-cta .sub-ne { font-size: 13px; opacity: 0.85; }
+  .advisory-cta .arrow { font-size: 20px; }
+
+  .select-label { font-size: 12px; color: #6B7280; font-weight: 600; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .context-row { display: flex; gap: 16px; margin-bottom: 20px; }
+  .context-row select {
+    flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid #E5E7EB; font-weight: 500;
+  }
+
+  .info-row { display: flex; gap: 16px; margin-bottom: 20px; }
+  .info-card {
+    flex: 1; background: white; border-radius: 10px; padding: 16px 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .info-card .tag { font-size: 12px; color: #6B7280; margin-bottom: 4px; }
+  .info-card .value { font-size: 18px; font-weight: 700; color: #1B4332; }
+  .info-card .badge { display: inline-block; margin-top: 6px; font-size: 12px; padding: 2px 8px; border-radius: 10px; background: #DCFCE7; color: #16A34A; }
+  .alert-card { background: #FEE2E2; border-left: 4px solid #EF4444; }
+  .alert-card .tag { color: #991B1B; font-weight: 700; }
+  .alert-card .value { color: #991B1B; font-size: 14px; font-weight: 500; }
+
+  .advice-row { display: flex; gap: 16px; margin-bottom: 20px; }
+  .advice-card { flex: 1; background: white; border-radius: 10px; padding: 18px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .advice-card .head { font-weight: 700; color: #1B4332; margin-bottom: 6px; font-size: 14px; }
+  .advice-card .body { font-size: 13px; color: #4B5563; line-height: 1.5; }
+  .advice-card.sow { border-left: 4px solid #22C55E; }
+  .advice-card.harvest { border-left: 4px solid #7EC8E3; }
+
+  .banner {
+    background: linear-gradient(rgba(27,67,50,0.5), rgba(27,67,50,0.5)),
+                url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1200') center/cover;
+    border-radius: 10px; padding: 30px 24px; color: white; font-weight: 700; font-size: 18px;
+  }
+
+  .site-nav {
+  background: linear-gradient(135deg, #0EA5E9, #7EC8E3) !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15) !important;
+  }
+</style>
+
+<div class="dash-wrap">
+
+  <div class="greet-card">
+    <div class="label">Namaste,</div>
+    <h2>Welcome, {{ farmer_name|default:"Ram Bahadur" }}</h2>
+    <div class="sub">स्वागत छ, {{ farmer_name_ne|default:"राम बहादुर" }}</div>
+    <div class="meta"><span></span>{{ district|default:"Chitwan" }}, Ward {{ ward|default:"4" }}</div>
+  </div>
+
+  <a href="/weather-data/" class="weather-strip">
+    <div class="left">
+      <div class="icon">☀️</div>
+      <div>
+        <div class="label">Current Weather</div>
+        <div class="temp">{{ district|default:"Chitwan" }}: {{ temp|default:"32°C, Sunny" }}</div>
+      </div>
+    </div>
+    <div class="humidity">
+      <div class="label">Humidity</div>
+      <div class="val">{{ humidity|default:"45%" }}</div>
+    </div>
+  </a>
+
+  <a href="/advisory/" class="advisory-cta">
+    <div>
+      <div class="title">Get New Advisory</div>
+      <div class="sub-ne">नयाँ परामर्श लिनुहोस्</div>
+    </div>
+    <div class="arrow">→</div>
+  </a>
+
+  <div class="select-label">SELECT CONTEXT</div>
+  <div class="context-row">
+    <select>
+      <option>📍 {{ district|default:"Chitwan" }}</option>
+      <option>Bardiya</option>
+      <option>Rupandehi</option>
+      <option>Sunsari</option>
+    </select>
+    <select>
+      <option>🌾 {{ crop|default:"Rice (Dhan)" }}</option>
+      <option>Wheat (Gahu)</option>
+      <option>Maize (Makai)</option>
+      <option>Vegetables</option>
+    </select>
+</div>
+
+  <div class="info-row">
+    <div class="info-card">
+      <div class="tag">Market Price: Rice</div>
+      <div class="value">NPR 4,200 <span style="font-size:13px;font-weight:400;">/ quintal</span></div>
+      <span class="badge">+12%</span>
+    </div>
+    <div class="info-card alert-card">
+      <div class="tag">⚠ Alert</div>
+      <div class="value">Pest warning in nearby area.</div>
+    </div>
+  </div>
+
+  <div class="advice-row">
+    <div class="advice-card sow">
+      <div class="head">🚜 Sowing Advice</div>
+      <div class="body">Conditions are not ideal for sowing this week. Monitor forecast for changes.</div>
+    </div>
+    <div class="advice-card harvest">
+      <div class="head">🌾 Harvesting Advice</div>
+      <div class="body">Rain expected. Plan harvesting carefully to avoid moisture damage to crops.</div>
+    </div>
+  </div>
+
+  <div class="banner">Your Farm's Peak Season is Approaching</div>
+
+</div>
+{% endblock %}
