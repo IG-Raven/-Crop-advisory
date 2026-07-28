@@ -34,7 +34,7 @@ def results(request):
             return render(request, "advisory/home.html", {
                 "districts": District.objects.all(),
                 "crops": Crop.objects.all(),
-                "error": "Weather data unavailable. Please check API key or try again later.",
+                "error": str(e),
             })
 
     return render(request, "advisory/home.html", {

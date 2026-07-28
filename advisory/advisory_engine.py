@@ -1,7 +1,7 @@
 from .models import CropRule
 
-def get_advisory(crop, weather):
-    rules = CropRule.objects.filter(crop=crop)
+def get_advisory(crop_name, weather):
+    rules = CropRule.objects.filter(crop__name=crop_name)
     triggered = evaluate_rules(rules, weather)
     sorted_rules = sort_by_severity(triggered)
     return build_response(sorted_rules)
@@ -24,10 +24,24 @@ def sort_by_severity(triggered):
 
 def build_response(sorted_rules):
     if not sorted_rules:
-        return {"suitability": "suitable", "recommendations": ["No risks detected"]}
-    top_rule = sorted_rules[0]
-    recs = [r.action for r in sorted_rules]
+        return {
+            "suitability": "suitable",
+            "recommendations": ["No risks detected. Conditions are normal."]
+        }
+    
+    top_severity = sorted_rules[0].severity
+    
+    # If unsuitable — only show unsuitable and warning rules, drop suitable ones
+    if top_severity == "unsuitable":
+        filtered = [r for r in sorted_rules if r.severity != "suitable"]
+    # If warning — show warnings only, drop suitable
+    elif top_severity == "warning":
+        filtered = [r for r in sorted_rules if r.severity != "suitable"]
+    else:
+        filtered = sorted_rules
+
+    recs = [r.action for r in filtered]
     return {
-        "suitability": top_rule.severity,
+        "suitability": top_severity,
         "recommendations": recs
     }

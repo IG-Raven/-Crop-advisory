@@ -1,32 +1,61 @@
 {% extends "advisory/base.html" %}
 {% block content %}
 <style>
-  .results-wrap { padding: 40px; }
-  .stat-box { border-radius: 10px; padding: 18px; text-align: center; color: white; }
-  .advisory-card {
-    background: white; border-radius: 10px; padding: 20px; margin-top: 20px;
-    border-left: 6px solid;
+  body { padding-top: 70px; }
+  .results-wrap {
+    padding: 40px;
+    max-width: 960px;
+    margin: 0 auto;
   }
+  .stat-box {
+    border-radius: 10px;
+    padding: 18px;
+    text-align: center;
+    color: white;
+  }
+  .advisory-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+    border-left: 6px solid;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .site-nav {
+  background: linear-gradient(135deg, #0EA5E9, #7EC8E3) !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15) !important;
+}
 </style>
+
 <div class="results-wrap">
-  <h4 style="color:#1B4332;">Advisory for {{ crop }} in {{ district }}</h4>
+<h4 style="color:#1B4332; font-weight:700; font-size:20px;">
+  📍 {{ district.name }} &nbsp;·&nbsp;
+  {% if crop.name == "Rice" %}🌾
+  {% elif crop.name == "Wheat" %}🌿
+  {% elif crop.name == "Maize" %}🌽
+  {% elif crop.name == "Vegetables" %}🥬
+  {% else %}🌱
+  {% endif %}
+  {{ crop.name }}
+</h4>
+
   <div class="row g-3 mt-2">
     <div class="col-md-4">
       <div class="stat-box" style="background:#F59E0B;">
         <div style="font-size:13px;">Temperature</div>
-        <div style="font-size:24px;font-weight:700;">{{ weather.temperature }}°C</div>
+        <div style="font-size:28px;font-weight:700;">{{ weather.temperature }}°C</div>
       </div>
     </div>
     <div class="col-md-4">
       <div class="stat-box" style="background:#7EC8E3;">
         <div style="font-size:13px;">Rainfall</div>
-        <div style="font-size:24px;font-weight:700;">{{ weather.rainfall }}mm</div>
+        <div style="font-size:28px;font-weight:700;">{{ weather.rainfall }}mm</div>
       </div>
     </div>
     <div class="col-md-4">
       <div class="stat-box" style="background:#8B5CF6;">
         <div style="font-size:13px;">Humidity</div>
-        <div style="font-size:24px;font-weight:700;">{{ weather.humidity }}%</div>
+        <div style="font-size:28px;font-weight:700;">{{ weather.humidity }}%</div>
       </div>
     </div>
   </div>
@@ -35,17 +64,24 @@
     {% if advisory.suitability == 'suitable' %}#22C55E
     {% elif advisory.suitability == 'warning' %}#F59E0B
     {% else %}#EF4444{% endif %};">
-    <strong style="color:
+
+    <strong style="font-size:16px; color:
       {% if advisory.suitability == 'suitable' %}#22C55E
       {% elif advisory.suitability == 'warning' %}#F59E0B
       {% else %}#EF4444{% endif %};">
+      {% if advisory.suitability == 'suitable' %}✅
+      {% elif advisory.suitability == 'warning' %}⚠️
+      {% else %}🚫{% endif %}
       {{ advisory.suitability|upper }}
     </strong>
-    <ul class="mt-2 mb-0">
-      {% for r in advisory.recommendations %}<li>{{ r }}</li>{% endfor %}
+
+    <ul class="mt-2 mb-0" style="font-size:14px; line-height:1.8;">
+      {% for r in advisory.recommendations %}
+      <li>{{ r }}</li>
+      {% endfor %}
     </ul>
   </div>
 
-  <a href="/" class="btn btn-outline-success mt-4">Back to Home</a>
+  <a href="/" class="btn btn-outline-success mt-4">← Back to Home</a>
 </div>
 {% endblock %}

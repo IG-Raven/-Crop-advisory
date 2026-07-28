@@ -1,25 +1,107 @@
 {% extends "advisory/base.html" %}
 {% block content %}
 <style>
-  .register-wrap { padding: 40px; max-width: 800px; margin: 0 auto; }
-  .register-card { background: white; border-radius: 12px; padding: 36px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
-  .register-card h4 { color: #1B4332; font-weight: 700; margin-bottom: 24px; }
-  .form-label { font-weight: 600; font-size: 13px; color: #374151; margin-bottom: 4px; }
-  .form-control, .form-select { border-radius: 6px; border: 1px solid #D1D5DB; padding: 8px 12px; }
-  .location-box {
-    background: #F0FDF4; border-radius: 8px; padding: 16px; text-align: center; margin: 20px 0;
+  .register-wrap { 
+    padding: 40px; 
+    max-width: 800px; 
+    margin: 0 auto; 
   }
-  .location-box .label { font-weight: 600; color: #374151; margin-bottom: 10px; }
-  .btn-location { background: #0078D4; color: white; border: none; border-radius: 6px; padding: 8px 20px; font-weight: 500; }
+
+  .register-card { 
+    background: white; 
+    border-radius: 12px; 
+    padding: 36px; 
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06); 
+  }
+
+  .register-card h4 { 
+    color: #1B4332; 
+    font-weight: 700; 
+    margin-bottom: 24px; 
+  }
+
+  .form-label { 
+    font-weight: 600; 
+    font-size: 13px; 
+    color: #374151; 
+    margin-bottom: 4px; 
+  }
+
+  .form-control, .form-select { 
+    border-radius: 6px; 
+    border: 1px solid #D1D5DB; 
+    padding: 8px 12px; 
+  }
+  
+  .location-box {
+    background: #F0FDF4; 
+    border-radius: 8px; 
+    padding: 16px; 
+    text-align: center; 
+    margin: 20px 0;
+  }
+  
+  .location-box .label { 
+    font-weight: 600; 
+    color: #374151; 
+    margin-bottom: 10px; 
+  }
+    
+  .btn-location { 
+    background: #0078D4; 
+    color: white; 
+    border: none; 
+    border-radius: 6px; 
+    padding: 8px 20px; 
+    font-weight: 500; 
+  }
+
   .crop-option {
-    border: 1px solid #E5E7EB; border-radius: 10px; padding: 16px 10px; text-align: center;
+    border: 1px solid #E5E7EB; 
+    border-radius: 10px; 
+    padding: 16px 10px; 
+    text-align: center;
     cursor: pointer; transition: 0.15s;
   }
-  .crop-option:hover, .crop-option.selected { border-color: #1B4332; background: #F0FDF4; }
-  .crop-option .emoji { font-size: 30px; display: block; margin-bottom: 6px; }
-  .crop-option .name { font-size: 13px; font-weight: 500; color: #374151; }
-  .btn-cancel { background: #F3F4F6; color: #374151; border: none; border-radius: 6px; padding: 8px 26px; }
-  .btn-create { background: #22C55E; color: white; border: none; border-radius: 6px; padding: 8px 26px; font-weight: 600; }
+  
+  .crop-option:hover, .crop-option.selected { 
+    border-color: #1B4332; 
+    background: #F0FDF4; 
+  }
+  
+  .crop-option .emoji { 
+    font-size: 30px; 
+    display: block; 
+    margin-bottom: 6px; 
+  }
+  
+  .crop-option .name { 
+    font-size: 13px; 
+    font-weight: 500; 
+    color: #374151; 
+  }
+  
+  .btn-cancel { 
+    background: #F3F4F6; 
+    color: #374151; 
+    border: none; 
+    border-radius: 6px; 
+    padding: 8px 26px; 
+  }
+
+  .btn-create { 
+    background: #22C55E; 
+    color: white; 
+    border: none; 
+    border-radius: 6px; 
+    padding: 8px 26px; 
+    font-weight: 600; 
+  }
+
+  .site-nav {
+  background: linear-gradient(135deg, #0EA5E9, #7EC8E3) !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15) !important;
+  }
 </style>
 
 <div class="register-wrap">
