@@ -1,7 +1,7 @@
 {% extends "advisory/base.html" %}
+{% block nav_class %}nav-dashboard{% endblock %}
 {% block nav_links %}
 <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
-<li class="nav-item"><a href="/dashboard/" class="nav-link">Dashboard</a></li>
 {% endblock %}
 
 {% block nav_right %}
@@ -9,126 +9,328 @@
   <button class="lang-btn active">English</button>
   <button class="lang-btn">नेपाली</button>
 </div>
+<a href="/logout/" class="btn-login-nav">Sign Out</a>
 {% endblock %}
 {% block content %}
 <style>
-  .dash-wrap {
-    max-width: 980px;
-    margin: 0 auto;
-    padding: 24px;
+.dash-wrap{
+    width:94%;
+    max-width:1600px;
+    margin:24px auto 40px;
+    padding:0;
 }
 
-  .greet-card h2 {
-    font-size:28px;
-    margin:2px 0 8px;
-  }
-  
-  .greet-card .sub {
-      margin-bottom:8px;
-  }
+.greet-card{
+    background:linear-gradient(135deg,#2E7D32,#388E3C);
+    color:#fff;
+    padding:28px 36px;
+    border-radius:18px;
+    margin-bottom:24px;
+    box-shadow:0 8px 22px rgba(0,0,0,.08);
+}
 
-  .greet-card .label { 
-    font-size: 13px; 
-    opacity: 0.85; 
-  }
+.greet-card .label{
+    font-size:14px;
+    opacity:.9;
+}
 
-  .greet-card h2 { 
-    font-size: 26px; 
-    font-weight: 700; 
-    margin: 4px 0; 
-  }
+.greet-card h2{
+    margin:6px 0;
+    font-size:34px;
+    font-weight:700;
+}
 
-  .greet-card .sub { 
-    font-size: 15px; 
-    opacity: 0.9; 
-    margin-bottom: 10px; 
-  }
-  
-  .greet-card .meta { 
-    font-size: 13px; 
-    opacity: 0.85; 
-  }
+.greet-card .sub{
+    font-size:17px;
+    margin-bottom:14px;
+    opacity:.95;
+}
 
-  .greet-card .meta span { 
-    display: inline-block; 
-    width: 6px; 
-    height: 6px; 
-    border-radius: 50%; 
-    background: #F59E0B; 
-    margin-right: 6px; 
-  }
+.greet-card .meta{
+    font-size:14px;
+}
 
-  .weather-strip{
-    background:#F7FCF8;
+.greet-card .meta span{
+    display:inline-block;
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#F59E0B;
+    margin-right:8px;
+}
+
+.weather-strip{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#fff;
     border:1px solid #DCEFE3;
-    padding:16px 22px;
-    margin-bottom:18px;
-  }
+    border-top:4px solid #1565C0;
+    border-radius:14px;
+    padding:18px 24px;
+    margin-bottom:24px;
+    text-decoration:none;
+    color:inherit;
+    transition:.25s;
+}
 
-  .temp{
+.weather-strip:hover{
+    box-shadow:0 8px 18px rgba(0,0,0,.08);
+    color:inherit;
+}
+
+.weather-strip .left{
+    display:flex;
+    align-items:center;
+    gap:18px;
+}
+
+.weather-strip .icon{
+    font-size:38px;
+}
+
+.weather-strip .label{
+    font-size:14px;
+    color:#6B7280;
+}
+
+.weather-strip .temp{
+    font-size:28px;
+    font-weight:700;
+    color:#14532D;
+}
+
+.weather-strip .humidity{
+    text-align:right;
+}
+
+.weather-strip .humidity .val{
+    font-size:28px;
+    font-weight:700;
+    color:#14532D;
+}
+
+.advisory-cta{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#1976D2;
+    color:#fff;
+    text-decoration:none;
+    padding:18px 24px;
+    border-radius:14px;
+    margin-bottom:28px;
+    transition:.25s;
+}
+
+.advisory-cta:hover{
+    background:#1565C0;
+    color:#fff;
+}
+
+.advisory-cta .title{
+    font-size:24px;
+    font-weight:700;
+}
+
+.advisory-cta .sub-ne{
+    margin-top:4px;
+    font-size:14px;
+}
+
+.advisory-cta .arrow{
+    font-size:32px;
+}
+
+.select-label{
+    font-size:18px;
+    font-weight:700;
+    color:#1565C0;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin-bottom:12px;
+}
+
+.context-row{
+    display:flex;
+    gap:24px;
+    margin-bottom:28px;
+}
+
+.context-row select{
+    flex:1;
+    height:54px;
+    padding:0 16px;
+    border:1px solid #D7E3F4;
+    border-radius:12px;
+    background:#FAFBFC;
+    font-size:16px;
+}
+
+.context-row select:focus{
+    outline:none;
+    border-color:#1565C0;
+    box-shadow:0 0 0 3px rgba(21,101,192,.15);
+}
+
+.info-row{
+    display:flex;
+    gap:24px;
+    margin-bottom:24px;
+    align-items:stretch;
+}
+
+.info-card{
+    flex:1;
+    background:#fff;
+    border-radius:14px;
+    padding:20px 22px;
+    border:1px solid #EEF2F7;
+    box-shadow:0 4px 12px rgba(0,0,0,.05);
+}
+
+.info-card .tag{
+    font-size:15px;
+    color:#6B7280;
+}
+
+.info-card .value{
+    margin-top:10px;
+    font-size:36px;
+    font-weight:700;
+    color:#14532D;
+}
+
+.badge{
+    display:inline-block;
+    margin-top:10px;
+    padding:5px 12px;
+    border-radius:20px;
+    background:#ECFDF5;
+    color:#15803D;
+    font-size:13px;
+    font-weight:600;
+}
+
+.alert-card{
+    background:#FFF8E8;
+    border-left:5px solid #F59E0B;
+}
+
+.alert-card .tag{
+    color:#B45309;
+    font-weight:700;
+    font-size:18px;
+}
+
+.alert-card .value{
+    margin-top:16px;
+    font-size:24px;
+    font-weight:600;
+    color:#92400E;
+}
+
+.advice-row{
+    display:flex;
+    gap:24px;
+    margin-bottom:24px;
+    align-items:stretch;
+}
+
+.advice-card{
+    flex:1;
+    background:#fff;
+    border-radius:14px;
+    padding:20px 22px;
+    min-height:150px;
+    box-shadow:0 4px 12px rgba(0,0,0,.05);
+}
+
+.advice-card .head{
     font-size:20px;
-  }
+    font-weight:700;
+    margin-bottom:12px;
+    color:#14532D;
+}
 
-  .weather-strip:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: inherit; }
+.advice-card .body{
+    font-size:17px;
+    line-height:1.7;
+    color:#4B5563;
+}
 
-  .weather-strip .left { display: flex; align-items: center; gap: 14px; }
+.sow{
+    border-left:5px solid #22C55E;
+}
 
-  .weather-strip .icon { font-size: 32px; }
+.harvest{
+    border-left:5px solid #0EA5E9;
+}
 
-  .weather-strip .label { font-size: 13px; color: #6B7280; }
+.banner{
+    height:150px;
+    display:flex;
+    align-items:center;
+    padding:0 40px;
+    border-radius:16px;
+    color:#fff;
+    font-size:26px;
+    font-weight:700;
+    margin-bottom:40px;
+    background:
+    linear-gradient(rgba(21,101,192,.45),rgba(21,101,192,.45)),
+    url("https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1600")
+    center/cover;
+}
 
-  .weather-strip .temp { font-size: 18px; font-weight: 700; color: #1B4332; }
+.site-nav.nav-dashboard {
+  background: linear-gradient(135deg, #1565C0, #1E88E5) !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15) !important;
+}
 
-  .weather-strip .humidity { text-align: right; }
+@media (max-width:900px){
 
-  .weather-strip .humidity .val { font-weight: 700; color: #1B4332; }
+.dash-wrap{
+    width:95%;
+}
 
+.context-row,
+.info-row,
+.advice-row{
+    flex-direction:column;
+}
 
-  .advisory-cta {
-    background: #F59E0B; border-radius: 10px; padding: 20px 24px;
-    display: flex; justify-content: space-between; align-items: center;
-    text-decoration: none; color: #1B4332; margin-bottom: 24px;
-  }
-  .advisory-cta:hover { color: #1B4332; opacity: 0.95; }
-  .advisory-cta .title { font-weight: 700; font-size: 17px; }
-  .advisory-cta .sub-ne { font-size: 13px; opacity: 0.85; }
-  .advisory-cta .arrow { font-size: 20px; }
+.weather-strip{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:18px;
+}
 
-  .select-label { font-size: 12px; color: #6B7280; font-weight: 600; margin-bottom: 6px; letter-spacing: 0.5px; }
-  .context-row { display: flex; gap: 16px; margin-bottom: 20px; }
-  .context-row select {
-    flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid #E5E7EB; font-weight: 500;
-  }
+.weather-strip .humidity{
+    text-align:left;
+}
 
-  .info-row { display: flex; gap: 16px; margin-bottom: 20px; }
-  .info-card {
-    flex: 1; background: white; border-radius: 10px; padding: 16px 20px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  }
-  .info-card .tag { font-size: 12px; color: #6B7280; margin-bottom: 4px; }
-  .info-card .value { font-size: 18px; font-weight: 700; color: #1B4332; }
-  .info-card .badge { display: inline-block; margin-top: 6px; font-size: 12px; padding: 2px 8px; border-radius: 10px; background: #DCFCE7; color: #16A34A; }
-  .alert-card { background: #FEE2E2; border-left: 4px solid #EF4444; }
-  .alert-card .tag { color: #991B1B; font-weight: 700; }
-  .alert-card .value { color: #991B1B; font-size: 14px; font-weight: 500; }
+.banner{
+    font-size:26px;
+    height:140px;
+}
 
-  .advice-row { display: flex; gap: 16px; margin-bottom: 20px; }
-  .advice-card { flex: 1; background: white; border-radius: 10px; padding: 18px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-  .advice-card .head { font-weight: 700; color: #1B4332; margin-bottom: 6px; font-size: 14px; }
-  .advice-card .body { font-size: 13px; color: #4B5563; line-height: 1.5; }
-  .advice-card.sow { border-left: 4px solid #22C55E; }
-  .advice-card.harvest { border-left: 4px solid #7EC8E3; }
+.greet-card h2{
+    font-size:28px;
+}
 
-  .banner {
-    background: linear-gradient(rgba(27,67,50,0.5), rgba(27,67,50,0.5)),
-                url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1200') center/cover;
-    border-radius: 10px; padding: 30px 24px; color: white; font-weight: 700; font-size: 18px;
-  }
+.info-card .value{
+    font-size:28px;
+}
 
-  .site-nav {
-  background: linear-gradient(135deg, #0EA5E9, #7EC8E3) !important;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15) !important;
-  }
+.alert-card .value{
+    font-size:20px;
+}
+
+.advice-card .head{
+    font-size:18px;
+}
+}
 </style>
 
 <div class="dash-wrap">
@@ -162,7 +364,7 @@
     <div class="arrow">→</div>
   </a>
 
-  <div class="select-label">SELECT CONTEXT</div>
+  <div class="select-label">Farm Information</div>
   <div class="context-row">
     <select>
       <option>📍 {{ district|default:"Chitwan" }}</option>

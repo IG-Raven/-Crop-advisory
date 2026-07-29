@@ -13,6 +13,7 @@ urlpatterns = [
     path("dashboard/", views.dashboard_view, name="dashboard"),
     path("weather-data/", views.weather_data_view, name="weather_data"),
     path("about/", views.about_view, name="about"),
+    path("logout/", views.logout_view, name="logout"),
 ]
 
 if settings.DEBUG:
