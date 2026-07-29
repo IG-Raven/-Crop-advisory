@@ -44,10 +44,13 @@ def results(request):
     
 def login_view(request):
     if request.method == "POST":
+        request.session['logged_in'] = True
         return redirect("/dashboard/")
     return render(request, "advisory/login.html")
 
 def dashboard_view(request):
+    if not request.session.get('logged_in'):
+        return redirect("/login/")
     return render(request, "advisory/dashboard.html", {
         "farmer_name": "Ram Bahadur",
         "farmer_name_ne": "राम बहादुर",
@@ -58,6 +61,10 @@ def dashboard_view(request):
         "humidity": "45%",
     })
 
+def logout_view(request):
+    request.session.flush()
+    return redirect("/")
+
 def weather_data_view(request):
     return render(request, "advisory/weather_data.html")
 
@@ -65,5 +72,5 @@ def register_view(request):
     return render(request, "advisory/register.html")
 
 def about_view(request):
-    return HttpResponse("About page coming soon.")
+    return render(request, "advisory/about.html")
     
