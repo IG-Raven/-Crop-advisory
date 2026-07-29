@@ -1,4 +1,18 @@
 {% extends "advisory/base.html" %}
+{% block nav_class %}nav-dashboard{% endblock %}
+
+{% block nav_links %}
+<li class="nav-item"><a href="/" class="nav-link">Home</a></li>
+<li class="nav-item"><a href="/dashboard/" class="nav-link">Dashboard</a></li>
+{% endblock %}
+
+{% block nav_right %}
+<div class="lang-group">
+  <button class="lang-btn active">English</button>
+  <button class="lang-btn">नेपाली</button>
+</div>
+{% endblock %}
+
 {% block content %}
 <div style="padding: 80px 40px; text-align: center; max-width: 600px; margin: 0 auto;">
   <div style="font-size: 60px; margin-bottom: 16px;">🌤️</div>
