@@ -1,3 +1,7 @@
+import os
+import json
+import anthropic
+from django.http import JsonResponse
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.core.cache import cache
@@ -73,4 +77,49 @@ def register_view(request):
 
 def about_view(request):
     return render(request, "advisory/about.html")
-    
+
+def chatbot_view(request):
+    return render(request, "advisory/chatbot.html")
+
+def chatbot_message(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            user_message = data.get("message", "")
+            history = data.get("history", [])
+
+            client = anthropic.Anthropic(
+                api_key=os.environ.get("ANTHROPIC_API_KEY")
+            )
+
+            system_prompt = """You are an expert agricultural advisor for Nepal's Terai region farmers.
+You specialize in Rice (Dhaan), Wheat (Gahu), Maize (Makai), and Vegetables.
+You focus on Chitwan, Bardiya, Rupandehi, and Sunsari districts.
+Give practical, concise, actionable advice based on MoALD Nepal guidelines and FAO standards.
+Use simple language. Mention specific quantities when relevant.
+You can respond in Nepali if the farmer writes in Nepali.
+Always end with one clear actionable next step."""
+
+            messages = []
+            for h in history[:-1]:
+                if h.get("role") in ("user", "assistant"):
+                    messages.append({"role": h["role"], "content": h["content"]})
+
+            messages.append({"role": "user", "content": user_message})
+
+            response = client.messages.create(
+                model="claude-sonnet-4-6",
+                max_tokens=500,
+                system=system_prompt,
+                messages=messages
+            )
+
+            reply = response.content[0].text
+            return JsonResponse({"reply": reply})
+
+        except Exception as e:
+            return JsonResponse({"reply": f"Error: {str(e)}"}, status=500)
+
+    return JsonResponse({"error": "Method not allowed"}, status=405)
+
+api_key = os.environ.get("ANTHROPIC_API_KEY")

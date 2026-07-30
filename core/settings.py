@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -124,3 +125,5 @@ STATICFILES_DIRS = [BASE_DIR / "advisory" / "static"]
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")

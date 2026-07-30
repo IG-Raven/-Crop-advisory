@@ -14,6 +14,8 @@ urlpatterns = [
     path("weather-data/", views.weather_data_view, name="weather_data"),
     path("about/", views.about_view, name="about"),
     path("logout/", views.logout_view, name="logout"),
+    path("chatbot/", views.chatbot_view, name="chatbot"),
+    path("chatbot/message/", views.chatbot_message, name="chatbot_message"),
 ]
 
 if settings.DEBUG:
