@@ -23,6 +23,7 @@ class CropRule(models.Model):
     max_value = models.FloatField(null=True, blank=True)
     action = models.TextField()
     severity = models.CharField(max_length=50, choices=[('low', 'Low'), ('moderate', 'Moderate'), ('high', 'High')])
+    condition = models.CharField(max_length=20)
     source = models.CharField(max_length=200, blank=True)
     def __str__(self):
         return f"{self.crop.name} - {self.district.name}"

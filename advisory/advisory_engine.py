@@ -1,6 +1,12 @@
 from .models import CropRule
 
+VALID_PARAMETERS = {"temperature", "humidity", "rainfall"}
+
 def get_advisory(crop_name, weather):
+    for param in VALID_PARAMETERS:
+        if param not in weather:
+            weather[param] = 0
+
     rules = CropRule.objects.filter(crop__name=crop_name)
     triggered = evaluate_rules(rules, weather)
     sorted_rules = sort_by_severity(triggered)
