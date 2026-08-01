@@ -1,6 +1,6 @@
 import os
 import json
-import anthropic
+from groq import Groq
 from django.http import JsonResponse
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
@@ -88,33 +88,39 @@ def chatbot_message(request):
             user_message = data.get("message", "")
             history = data.get("history", [])
 
-            client = anthropic.Anthropic(
-                api_key=os.environ.get("ANTHROPIC_API_KEY")
+            client = Groq(
+                api_key=os.environ.get("GROQ_API_KEY")
             )
 
-            system_prompt = """You are an expert agricultural advisor for Nepal's Terai region farmers.
+            system_prompt = system_prompt = """You are an expert agricultural advisor for Nepal's Terai region farmers.
 You specialize in Rice (Dhaan), Wheat (Gahu), Maize (Makai), and Vegetables.
 You focus on Chitwan, Bardiya, Rupandehi, and Sunsari districts.
 Give practical, concise, actionable advice based on MoALD Nepal guidelines and FAO standards.
-Use simple language. Mention specific quantities when relevant.
-You can respond in Nepali if the farmer writes in Nepali.
+Use simple language with clear formatting — use numbered lists and bold key points.
+Keep responses under 200 words and well structured.
+IMPORTANT: If the farmer writes in Nepali, respond entirely in Nepali.
+If they write in English, respond in English.
 Always end with one clear actionable next step."""
 
-            messages = []
+            messages = [{"role": "system", "content": system_prompt}]
+
             for h in history[:-1]:
                 if h.get("role") in ("user", "assistant"):
-                    messages.append({"role": h["role"], "content": h["content"]})
+                    messages.append({
+                        "role": h["role"],
+                        "content": h["content"]
+                    })
 
             messages.append({"role": "user", "content": user_message})
 
-            response = client.messages.create(
-                model="claude-sonnet-4-6",
+            response = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=messages,
                 max_tokens=500,
-                system=system_prompt,
-                messages=messages
+                temperature=0.7,
             )
 
-            reply = response.content[0].text
+            reply = response.choices[0].message.content
             return JsonResponse({"reply": reply})
 
         except Exception as e:
