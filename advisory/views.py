@@ -1,4 +1,7 @@
+import sys
 import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from bert_bot.advisor import AgricultureAdvisor
 # import json
 # from groq import Groq
 from django.http import JsonResponse
@@ -78,6 +81,22 @@ def register_view(request):
 def about_view(request):
     return render(request, "advisory/about.html")
 
+# Load model once when server starts
+advisor = AgricultureAdvisor(
+    data_path=os.path.join(os.path.dirname(__file__), '..', 'bert_bot', 'agriculture_data.json')
+)
+
+def chatbot_message(request):
+    if request.method == "POST":
+        import json
+        data = json.loads(request.body)
+        user_message = data.get("message", "")
+        result = advisor.ask(user_message)
+        return JsonResponse({"reply": result["answer"]})
+    return JsonResponse({"error": "Method not allowed"}, status=405)
+
+api_key = os.environ.get("ANTHROPIC_API_KEY")
+
 # def chatbot_view(request):
 #     return render(request, "advisory/chatbot.html")
 
@@ -128,4 +147,3 @@ def about_view(request):
 
 #     return JsonResponse({"error": "Method not allowed"}, status=405)
 
-api_key = os.environ.get("ANTHROPIC_API_KEY")
