@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from advisory import views
@@ -16,7 +16,6 @@ urlpatterns = [
     path("logout/", views.logout_view, name="logout"),
     path("chatbot/message/", views.chatbot_message, name="chatbot_message"),
     path("chatbot/history/", views.chatbot_history, name="chatbot_history"),
-    path("bert_bot/", include("bert_bot.urls")),
 ]
 
 if settings.DEBUG:
