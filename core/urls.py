@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
 from advisory import views
@@ -14,6 +14,7 @@ urlpatterns = [
     path("weather-data/", views.weather_data_view, name="weather_data"),
     path("about/", views.about_view, name="about"),
     path("logout/", views.logout_view, name="logout"),
+    path("bert_bot/", include("bert_bot.urls")),
     # path("chatbot/", views.chatbot_view, name="chatbot"),
     # path("chatbot/message/", views.chatbot_message, name="chatbot_message"),
 ]

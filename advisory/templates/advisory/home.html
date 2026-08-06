@@ -97,6 +97,69 @@
   background: #52B788;
   color: white;
 }
+
+.chatbot-card{
+    width:100%;
+    max-width:720px;
+    margin-top:25px;
+    background:rgba(255,255,255,.12);
+    backdrop-filter:blur(8px);
+    border-radius:14px;
+    padding:20px;
+}
+
+.chatbot-card h4{
+    color:#fff;
+    margin-bottom:15px;
+}
+
+#chat-box{
+    height:220px;
+    overflow-y:auto;
+    background:rgba(255,255,255,.15);
+    border-radius:8px;
+    padding:15px;
+    color:white;
+    margin-bottom:15px;
+    text-align:left;
+}
+
+.chat-input{
+    display:flex;
+    gap:10px;
+}
+
+.chat-input input{
+    flex:1;
+    border:none;
+    border-radius:8px;
+    padding:12px;
+}
+
+.chat-input button{
+    border:none;
+    background:#7EC8E3;
+    color:#1B4332;
+    font-weight:700;
+    padding:0 24px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.chat-input button:hover{
+    background:#52B788;
+    color:white;
+}
+
+.user-msg{
+    margin-bottom:10px;
+    text-align:right;
+}
+
+.bot-msg{
+    margin-bottom:15px;
+    text-align:left;
+}
 </style>
 
 <div class="hero">
@@ -123,6 +186,27 @@
     </select>
     <button type="submit" class="btn-get-advisory">Get Advisory</button>
   </form>
+<div class="chatbot-card">
+    
+    <h4>🌱 Ask Agriculture Assistant</h4>
+
+    <div id="chat-box"></div>
+
+    <div class="chat-input">
+
+        <input
+            type="text"
+            id="message"
+            placeholder="Ask about crops, irrigation, fertilizer, pests..."
+        >
+
+        <button type="button" onclick="sendMessage()">
+            Ask
+        </button>
+
+    </div>
+
+</div>
 
   <span class="signup-link">Not registered? <a href="/register/">Sign up here</a></span>
 </div>
@@ -138,5 +222,81 @@
     <div class="col-md-4"><div class="feature-card"><div class="icon">💬</div><div class="title gray">Feedback</div></div></div>
   </div>
 </div>
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+
+            if (cookie.startsWith(name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+
+    return cookieValue;
+}
+
+const csrftoken = getCookie("csrftoken");
+
+async function sendMessage(){
+
+    const input=document.getElementById("message");
+
+    const question=input.value.trim();
+
+    if(question==="") return;
+
+    const chat=document.getElementById("chat-box");
+
+    chat.innerHTML+=`
+        <div class="user-msg">
+            <b>You:</b><br>${question}
+        </div>
+    `;
+
+    input.value="";
+
+    const response=await fetch("/bert_bot/message/",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json",
+            "X-CSRFToken": csrftoken
+        },
+
+        body:JSON.stringify({
+            message:question
+        })
+
+    });
+
+    const data=await response.json();
+
+    chat.innerHTML+=`
+        <div class="bot-msg">
+            <b>Advisor:</b><br>${data.reply}
+        </div>
+    `;
+
+    chat.scrollTop=chat.scrollHeight;
+}
+
+document.getElementById("message").addEventListener("keypress",function(e){
+
+    if(e.key==="Enter"){
+        e.preventDefault();
+        sendMessage();
+    }
+
+});
+
+</script>
 {% block nav_class %}nav-transparent{% endblock %}
 {% endblock %}
