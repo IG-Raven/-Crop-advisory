@@ -2,27 +2,29 @@ import sys
 import os
 import json
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.core.cache import cache
 from .models import District, Crop, CropRule, WeatherData, Advisory
 from .weather_utils import fetch_weather
 from .advisory_engine import get_advisory
-from bert_bot.advisor import AgricultureAdvisor
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 
-from bert_bot.advisor import AgricultureAdvisor
-
-# Load BERT RAG model once when server starts
-ADVISOR = AgricultureAdvisor(
-    data_path=os.path.join(BASE_DIR, 'bert_bot', 'agriculture_data.json')
-)
-
+try:
+    from bert_bot.advisor import AgricultureAdvisor
+    ADVISOR = AgricultureAdvisor(
+        data_path=os.path.join(BASE_DIR, 'bert_bot', 'agriculture_data.json')
+    )
+    BERT_READY = True
+    print("BERT model loaded successfully")
+except Exception as e:
+    ADVISOR = None
+    BERT_READY = False
+    print(f"BERT load failed: {e}")
+    
 def home(request):
     return render(request, "advisory/home.html", {
         "districts": District.objects.all(),
@@ -89,22 +91,34 @@ def about_view(request):
 
 def chatbot_message(request):
     if request.method == "POST":
-        data = json.loads(request.body)
-        user_message = data.get("message", "")
+        try:
+            data = json.loads(request.body)
+            user_message = data.get("message", "").strip()
 
-        result = ADVISOR.ask(user_message)
+            if not user_message:
+                return JsonResponse({"reply": "Please type a message."})
 
-        # Save to session history
-        history = request.session.get("chat_history", [])
-        history.append({
-            "question": user_message,
-            "answer": result["answer"],
-            "confidence": result["confidence"]
-        })
-        request.session["chat_history"] = history[-20:]
-        request.session.modified = True
+            if not BERT_READY or ADVISOR is None:
+                return JsonResponse({
+                    "reply": "Advisory model is loading. Please try again in a moment."
+                })
 
-        return JsonResponse({"reply": result["answer"]})
+            result = ADVISOR.ask(user_message)
+
+            history = request.session.get("chat_history", [])
+            history.append({
+                "question": user_message,
+                "answer": result["answer"],
+                "confidence": result["confidence"]
+            })
+            request.session["chat_history"] = history[-20:]
+            request.session.modified = True
+
+            return JsonResponse({"reply": result["answer"]})
+
+        except Exception as e:
+            print(f"Chatbot error: {e}")
+            return JsonResponse({"reply": f"Error: {str(e)}"})
 
     return JsonResponse({"error": "Method not allowed"}, status=405)
 
