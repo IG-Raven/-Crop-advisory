@@ -98,68 +98,6 @@
   color: white;
 }
 
-.chatbot-card{
-    width:100%;
-    max-width:720px;
-    margin-top:25px;
-    background:rgba(255,255,255,.12);
-    backdrop-filter:blur(8px);
-    border-radius:14px;
-    padding:20px;
-}
-
-.chatbot-card h4{
-    color:#fff;
-    margin-bottom:15px;
-}
-
-#chat-box{
-    height:220px;
-    overflow-y:auto;
-    background:rgba(255,255,255,.15);
-    border-radius:8px;
-    padding:15px;
-    color:white;
-    margin-bottom:15px;
-    text-align:left;
-}
-
-.chat-input{
-    display:flex;
-    gap:10px;
-}
-
-.chat-input input{
-    flex:1;
-    border:none;
-    border-radius:8px;
-    padding:12px;
-}
-
-.chat-input button{
-    border:none;
-    background:#7EC8E3;
-    color:#1B4332;
-    font-weight:700;
-    padding:0 24px;
-    border-radius:8px;
-    cursor:pointer;
-}
-
-.chat-input button:hover{
-    background:#52B788;
-    color:white;
-}
-
-.user-msg{
-    margin-bottom:10px;
-    text-align:right;
-}
-
-.bot-msg{
-    margin-bottom:15px;
-    text-align:left;
-}
 </style>
 
 <div class="hero">
@@ -186,27 +124,6 @@
     </select>
     <button type="submit" class="btn-get-advisory">Get Advisory</button>
   </form>
-<div class="chatbot-card">
-    
-    <h4>🌱 Ask Agriculture Assistant</h4>
-
-    <div id="chat-box"></div>
-
-    <div class="chat-input">
-
-        <input
-            type="text"
-            id="message"
-            placeholder="Ask about crops, irrigation, fertilizer, pests..."
-        >
-
-        <button type="button" onclick="sendMessage()">
-            Ask
-        </button>
-
-    </div>
-
-</div>
 
   <span class="signup-link">Not registered? <a href="/register/">Sign up here</a></span>
 </div>

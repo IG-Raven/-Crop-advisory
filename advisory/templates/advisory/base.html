@@ -1,3 +1,5 @@
+{% load static %}
+<link rel="icon" href="{% static 'advisory/images/favicon.ico' %}">
 <!DOCTYPE html>
 <html>
 <head>
@@ -5,8 +7,18 @@
   <title>{% block title %}CropAdvisory Nepal{% endblock %}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    html, body { margin: 0; padding: 0; }
-    body { background: #F9FAFB; font-family: -apple-system, Segoe UI, Roboto, sans-serif; }
+    html, body { 
+      margin: 0; 
+      padding: 0; 
+    }
+    
+    body { 
+      background: #F9FAFB; 
+      font-family: -apple-system, 
+      Segoe UI, 
+      Roboto, 
+      sans-serif; 
+    }
 
     .site-nav.nav-transparent {
      background: rgba(255, 255, 255, 0.12) !important;
@@ -69,7 +81,10 @@
       margin-right: 12px;
       padding: 6px 4px;
     }
-    .btn-login-nav:hover { color: #1B4332 !important; }
+
+    .btn-login-nav:hover { 
+      color: #1B4332 !important; 
+    }
 
     .btn-signup-nav {
       background: white;
@@ -134,5 +149,729 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Floating Chatbot Widget -->
+<div id="chatWidget" style="position:fixed;bottom:24px;right:24px;z-index:9999;">
+
+  <!-- Toggle Button -->
+  <button id="chatToggleBtn" onclick="toggleChat()"
+    title="Farm Assistant"
+    style="width:56px;height:56px;border-radius:50%;
+           background:linear-gradient(135deg,#1565C0,#1E88E5);
+           border:none;color:white;font-size:24px;cursor:pointer;
+           box-shadow:0 4px 16px rgba(27,67,50,0.4);
+           display:flex;align-items:center;justify-content:center;
+           transition:all 0.2s;margin-left:auto;">
+    🌾
+  </button>
+
+  <!-- Chat Panel — Mini Mode -->
+  <div id="chatPanel"
+    style="display:none;position:absolute;bottom:70px;right:0;
+           width:360px;background:white;border-radius:16px;
+           box-shadow:0 8px 32px rgba(0,0,0,0.18);
+           border:1px solid #E5E7EB;overflow:hidden;
+           transition:all 0.2s;">
+
+    <!-- Panel Header -->
+    <div id="panelHeader"
+      style="background:linear-gradient(135deg,#1B4332,#2D6A4F);
+             padding:13px 16px;color:white;
+             display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">🌾</span>
+        <div>
+          <div style="font-weight:700;font-size:14px;">KRIषि SALआह Assistant</div>
+          <div style="font-size:11px;opacity:0.8;">
+            <span style="width:6px;height:6px;background:#4ADE80;
+                         border-radius:50%;display:inline-block;
+                         margin-right:4px;"></span>Online · Agriculture AI
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <!-- Expand button -->
+        <button onclick="toggleExpand()" id="expandBtn"
+          title="Expand"
+          style="background:rgba(255,255,255,0.15);border:none;
+                 color:white;border-radius:6px;padding:5px 8px;
+                 font-size:13px;cursor:pointer;">⛶</button>
+        <button onclick="showTab('history')"
+          style="background:rgba(255,255,255,0.15);border:none;
+                 color:white;border-radius:6px;padding:5px 8px;
+                 font-size:11px;cursor:pointer;">📋</button>
+        <button onclick="toggleChat()"
+          style="background:none;border:none;color:white;
+                 font-size:18px;cursor:pointer;line-height:1;
+                 padding:2px 4px;">✕</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;border-bottom:2px solid #E5E7EB;background:#F9FAFB;">
+      <button onclick="showTab('chat')" id="tabChat"
+        style="flex:1;padding:8px;border:none;background:white;
+               font-size:12px;font-weight:600;color:#1B4332;
+               border-bottom:2px solid #1B4332;cursor:pointer;
+               margin-bottom:-2px;">
+        💬 Chat
+      </button>
+      <button onclick="showTab('history')" id="tabHistory"
+        style="flex:1;padding:8px;border:none;background:transparent;
+               font-size:12px;font-weight:600;color:#6B7280;
+               border-bottom:2px solid transparent;cursor:pointer;
+               margin-bottom:-2px;">
+        📋 History
+      </button>
+    </div>
+
+    <!-- Chat Tab -->
+    <div id="panelChat">
+      <div id="panelMessages"
+        style="height:300px;overflow-y:auto;padding:14px;
+               display:flex;flex-direction:column;gap:10px;
+               scroll-behavior:smooth;">
+        <div class="bot-msg">
+          Namaste! 🙏 I am your agricultural assistant.<br><br>
+          Ask me about <strong>rice, wheat, maize</strong> or
+          <strong>vegetables</strong> in Chitwan, Bardiya,
+          Rupandehi, or Sunsari.
+        </div>
+      </div>
+
+      <!-- Typing -->
+      <div id="panelTyping" style="display:none;padding:0 14px 8px;">
+        <div style="background:#F0FDF4;border-radius:10px;
+                    padding:8px 14px;display:inline-flex;
+                    gap:4px;align-items:center;">
+          <span class="tdot"></span>
+          <span class="tdot" style="animation-delay:0.2s"></span>
+          <span class="tdot" style="animation-delay:0.4s"></span>
+        </div>
+      </div>
+
+      <!-- Quick suggestions -->
+      <div id="suggestions"
+        style="padding:0 14px 8px;display:flex;
+               flex-wrap:wrap;gap:6px;">
+        <button class="sug-btn"
+          onclick="quickAsk('When to irrigate rice?')">
+          💧 Rice irrigation
+        </button>
+        <button class="sug-btn"
+          onclick="quickAsk('Best fertiliser for wheat?')">
+          🌿 Wheat fertiliser
+        </button>
+        <button class="sug-btn"
+          onclick="quickAsk('Maize pest signs?')">
+          🌽 Maize pests
+        </button>
+        <button class="sug-btn"
+          onclick="quickAsk('Vegetable flood care?')">
+          🥬 Flood care
+        </button>
+      </div>
+
+      <!-- Input row -->
+      <div style="padding:10px 14px;border-top:2px solid #E5E7EB;
+                  display:flex;gap:8px;align-items:flex-end;
+                  background:white;">
+        <textarea id="panelInput" rows="1"
+          placeholder="Ask about your crops..."
+          style="flex:1;border:1.5px solid #E5E7EB;
+                 border-radius:10px;padding:9px 12px;
+                 font-size:13px;resize:none;outline:none;
+                 font-family:inherit;max-height:100px;
+                 line-height:1.5;color:#1B4332;
+                 transition:border 0.15s;">
+        </textarea>
+        <button id="sendBtn" onclick="sendPanelMsg()"
+          style="width:38px;height:38px;
+                 background:linear-gradient(135deg,#1B4332,#2D6A4F);
+                 border:none;border-radius:10px;color:white;
+                 cursor:pointer;font-size:15px;flex-shrink:0;
+                 display:flex;align-items:center;
+                 justify-content:center;
+                 box-shadow:0 2px 6px rgba(27,67,50,0.3);">
+          ➤
+        </button>
+      </div>
+    </div>
+
+    <!-- History Tab -->
+    <div id="panelHistory" style="display:none;">
+      <div id="historyList"
+        style="height:380px;overflow-y:auto;padding:12px;
+               display:flex;flex-direction:column;gap:8px;">
+        <div style="text-align:center;color:#9CA3AF;
+                    font-size:12px;padding:30px 20px;">
+          Your conversation history will appear here
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Expanded Overlay -->
+<div id="chatOverlay"
+  style="display:none;position:fixed;inset:0;
+         background:rgba(0,0,0,0.5);z-index:10000;
+         align-items:center;justify-content:center;
+         padding:20px;">
+
+  <div id="expandedBox"
+    style="background:white;border-radius:20px;
+           width:100%;max-width:720px;height:88vh;
+           max-height:700px;display:flex;
+           flex-direction:column;overflow:hidden;
+           box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+
+    <!-- Expanded Header -->
+    <div style="background:linear-gradient(135deg,#1B4332,#2D6A4F);
+                padding:18px 24px;color:white;
+                display:flex;align-items:center;
+                justify-content:space-between;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:44px;height:44px;border-radius:50%;
+                    background:rgba(255,255,255,0.15);
+                    display:flex;align-items:center;
+                    justify-content:center;font-size:22px;">
+          🌾
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:17px;">
+            KRIषि SALआह Farm Assistant
+          </div>
+          <div style="font-size:12px;opacity:0.85;">
+            <span style="width:7px;height:7px;background:#4ADE80;
+                         border-radius:50%;display:inline-block;
+                         margin-right:5px;"></span>
+            Agriculture AI · Nepal Terai Districts
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button onclick="showExpandedTab('chat')"
+          id="exTabChat"
+          style="background:rgba(255,255,255,0.2);border:none;
+                 color:white;border-radius:8px;padding:6px 14px;
+                 font-size:12px;font-weight:600;cursor:pointer;">
+          💬 Chat
+        </button>
+        <button onclick="showExpandedTab('history')"
+          id="exTabHistory"
+          style="background:rgba(255,255,255,0.1);border:none;
+                 color:rgba(255,255,255,0.7);border-radius:8px;
+                 padding:6px 14px;font-size:12px;
+                 font-weight:600;cursor:pointer;">
+          📋 History
+        </button>
+        <button onclick="toggleExpand()"
+          title="Collapse"
+          style="background:rgba(255,255,255,0.15);border:none;
+                 color:white;border-radius:8px;padding:6px 10px;
+                 font-size:14px;cursor:pointer;margin-left:4px;">
+          -
+        </button>
+      </div>
+    </div>
+
+    <!-- Expanded Chat -->
+    <div id="exChat"
+      style="flex:1;display:flex;flex-direction:column;
+             overflow:hidden;">
+
+      <div id="exMessages"
+        style="flex:1;overflow-y:auto;padding:24px;
+               display:flex;flex-direction:column;
+               gap:14px;scroll-behavior:smooth;
+               background:#F8FAF8;">
+        <div class="ex-bot-msg">
+          Namaste! 🙏 I am your agricultural assistant for
+          Nepal's Terai region.<br><br>
+          I can help with <strong>crop advice</strong>,
+          <strong>irrigation timing</strong>,
+          <strong>fertiliser guidance</strong>,
+          <strong>pest management</strong>, and
+          <strong>weather impact</strong> for rice, wheat,
+          maize, and vegetables in Chitwan, Bardiya,
+          Rupandehi, and Sunsari.
+        </div>
+      </div>
+
+      <!-- Expanded typing -->
+      <div id="exTyping"
+        style="display:none;padding:0 24px 10px;
+               background:#F8FAF8;">
+        <div style="background:white;border-radius:12px;
+                    padding:10px 16px;display:inline-flex;
+                    gap:4px;align-items:center;
+                    border:1px solid #E5E7EB;">
+          <span class="tdot"></span>
+          <span class="tdot" style="animation-delay:0.2s"></span>
+          <span class="tdot" style="animation-delay:0.4s"></span>
+          <span style="font-size:11px;color:#9CA3AF;
+                       margin-left:6px;">Thinking...</span>
+        </div>
+      </div>
+
+      <!-- Expanded suggestions -->
+      <div id="exSuggestions"
+        style="padding:10px 24px;background:white;
+               border-top:1px solid #F0F0F0;
+               display:flex;flex-wrap:wrap;gap:8px;">
+        <button class="sug-btn"
+          onclick="quickAskEx('When to irrigate rice in Chitwan?')">
+          💧 Rice irrigation timing
+        </button>
+        <button class="sug-btn"
+          onclick="quickAskEx('Best fertiliser for wheat in Bardiya?')">
+          🌿 Wheat fertiliser
+        </button>
+        <button class="sug-btn"
+          onclick="quickAskEx('How to control fall armyworm in maize?')">
+          🌽 Maize pest control
+        </button>
+        <button class="sug-btn"
+          onclick="quickAskEx('What to do during flood for vegetables?')">
+          🥬 Flood management
+        </button>
+        <button class="sug-btn"
+          onclick="quickAskEx('What is the crop calendar for Nepal?')">
+          📅 Crop calendar
+        </button>
+        <button class="sug-btn"
+          onclick="quickAskEx('How to improve soil fertility?')">
+          🌱 Soil fertility
+        </button>
+      </div>
+
+      <!-- Expanded input -->
+      <div style="padding:16px 24px;border-top:2px solid #E5E7EB;
+                  background:white;display:flex;gap:12px;
+                  align-items:flex-end;flex-shrink:0;">
+        <textarea id="exInput" rows="1"
+          placeholder="Ask anything about your crops, weather, irrigation, pests..."
+          style="flex:1;border:1.5px solid #E5E7EB;
+                 border-radius:12px;padding:12px 16px;
+                 font-size:14px;resize:none;outline:none;
+                 font-family:inherit;max-height:120px;
+                 line-height:1.6;color:#1B4332;
+                 transition:border 0.15s;">
+        </textarea>
+        <button id="exSendBtn" onclick="sendExMsg()"
+          style="height:46px;padding:0 20px;
+                 background:linear-gradient(135deg,#1B4332,#2D6A4F);
+                 border:none;border-radius:12px;color:white;
+                 cursor:pointer;font-size:14px;font-weight:600;
+                 flex-shrink:0;white-space:nowrap;
+                 box-shadow:0 2px 8px rgba(27,67,50,0.3);
+                 display:flex;align-items:center;gap:6px;">
+          Send ➤
+        </button>
+      </div>
+    </div>
+
+    <!-- Expanded History -->
+    <div id="exHistory"
+      style="display:none;flex:1;overflow-y:auto;
+             padding:20px;display:flex;
+             flex-direction:column;gap:10px;">
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .bot-msg {
+    background: #F0FDF4;
+    color: #1B4332;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 1.6;
+    border: 1px solid #D1FAE5;
+    border-bottom-left-radius: 3px;
+    max-width: 90%;
+    align-self: flex-start;
+  }
+  .user-msg {
+    background: linear-gradient(135deg, #1B4332, #2D6A4F);
+    color: white;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 1.6;
+    border-bottom-right-radius: 3px;
+    max-width: 85%;
+    align-self: flex-end;
+  }
+  .ex-bot-msg {
+    background: white;
+    color: #1B4332;
+    border-radius: 14 px;
+    padding: 14px 18px;
+    font-size: 14px;
+    line-height: 1.7;
+    border: 1px solid #E5E7EB;
+    border-bottom-left-radius: 4px;
+    max-width: 80%;
+    align-self: flex-start;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .ex-user-msg {
+    background: linear-gradient(135deg, #1B4332, #2D6A4F);
+    color: white;
+    border-radius: 14px;
+    padding: 12px 18px;
+    font-size: 14px;
+    line-height: 1.6;
+    border-bottom-right-radius: 4px;
+    max-width: 75%;
+    align-self: flex-end;
+  }
+  .sug-btn {
+    background: #F0FDF4;
+    border: 1.5px solid #D1FAE5;
+    color: #1B4332;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .sug-btn:hover {
+    background: #1B4332;
+    color: white;
+    border-color: #1B4332;
+  }
+  .tdot {
+    width: 7px;
+    height: 7px;
+    background: #52B788;
+    border-radius: 50%;
+    display: inline-block;
+    animation: chatbounce 1.2s infinite;
+  }
+  @keyframes chatbounce {
+    0%,60%,100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); }
+  }
+  #chatToggleBtn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 20px rgba(27,67,50,0.5);
+  }
+  #panelInput:focus, #exInput:focus {
+    border-color: #2D6A4F;
+    box-shadow: 0 0 0 3px rgba(45,106,79,0.12);
+  }
+  #exMessages::-webkit-scrollbar,
+  #panelMessages::-webkit-scrollbar { width: 5px; }
+  #exMessages::-webkit-scrollbar-thumb,
+  #panelMessages::-webkit-scrollbar-thumb {
+    background: #D1FAE5;
+    border-radius: 10px;
+  }
+</style>
+
+<script>
+  let expanded = false;
+
+  // ── CSRF ────────────────────────────────────────────────────
+  function getCookie(name) {
+    let value = `; ${document.cookie}`;
+    let parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return '';
+  }
+
+  async function ensureCSRF() {
+    if (!getCookie('csrftoken')) {
+      await fetch('/', {credentials: 'same-origin'});
+    }
+  }
+
+  // ── TOGGLE OPEN/CLOSE ───────────────────────────────────────
+  function toggleChat() {
+    const panel = document.getElementById('chatPanel');
+    const btn   = document.getElementById('chatToggleBtn');
+    const open  = panel.style.display !== 'none';
+    panel.style.display = open ? 'none' : 'block';
+    btn.innerHTML = open ? '🌾' : '✕';
+    if (!open) {
+      document.getElementById('panelInput').focus();
+      hideSuggestions();
+    }
+  }
+
+  // ── EXPAND / COLLAPSE ───────────────────────────────────────
+  function toggleExpand() {
+    expanded = !expanded;
+    const overlay = document.getElementById('chatOverlay');
+    const panel   = document.getElementById('chatPanel');
+    const btn     = document.getElementById('chatToggleBtn');
+
+    if (expanded) {
+      overlay.style.display = 'flex';
+      panel.style.display   = 'none';
+      btn.innerHTML = '✕';
+      document.getElementById('exInput').focus();
+    } else {
+      overlay.style.display = 'none';
+      panel.style.display   = 'block';
+    }
+  }
+
+  // Close overlay on backdrop click
+  document.getElementById('chatOverlay').addEventListener('click', function(e) {
+    if (e.target === this) toggleExpand();
+  });
+
+  // ── TABS (mini) ─────────────────────────────────────────────
+  function showTab(tab) {
+    document.getElementById('panelChat').style.display =
+      tab === 'chat' ? 'block' : 'none';
+    document.getElementById('panelHistory').style.display =
+      tab === 'history' ? 'block' : 'none';
+
+    ['chat','history'].forEach(t => {
+      const id = 'tab' + t.charAt(0).toUpperCase() + t.slice(1);
+      const el = document.getElementById(id);
+      el.style.background         = t === tab ? 'white' : 'transparent';
+      el.style.color              = t === tab ? '#1B4332' : '#6B7280';
+      el.style.borderBottomColor  = t === tab ? '#1B4332' : 'transparent';
+    });
+
+    if (tab === 'history') loadHistory('historyList');
+  }
+
+  // ── TABS (expanded) ─────────────────────────────────────────
+  function showExpandedTab(tab) {
+    document.getElementById('exChat').style.display =
+      tab === 'chat' ? 'flex' : 'none';
+    document.getElementById('exHistory').style.display =
+      tab === 'history' ? 'flex' : 'none';
+
+    document.getElementById('exTabChat').style.background =
+      tab === 'chat' ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)';
+    document.getElementById('exTabChat').style.color =
+      tab === 'chat' ? 'white' : 'rgba(255,255,255,0.7)';
+    document.getElementById('exTabHistory').style.background =
+      tab === 'history' ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)';
+    document.getElementById('exTabHistory').style.color =
+      tab === 'history' ? 'white' : 'rgba(255,255,255,0.7)';
+
+    if (tab === 'history') loadHistory('exHistory');
+  }
+
+  // ── HELPERS ─────────────────────────────────────────────────
+  function formatText(t) {
+    return t
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n(\d+\.)/g, '<br>$1')
+      .replace(/\n/g, '<br>');
+  }
+
+  function hideSuggestions() {
+    const s = document.getElementById('suggestions');
+    if (s) s.style.display = 'none';
+  }
+
+  function scrollBottom(id) {
+    const el = document.getElementById(id);
+    if (el) el.scrollTop = el.scrollHeight;
+  }
+
+  // ── ADD MESSAGE (mini) ──────────────────────────────────────
+  function addPanelMsg(text, sender) {
+    const container = document.getElementById('panelMessages');
+    const typing    = document.getElementById('panelTyping');
+    const div = document.createElement('div');
+    div.className = sender === 'bot' ? 'bot-msg' : 'user-msg';
+    div.innerHTML = formatText(text);
+    container.insertBefore(div, typing);
+    scrollBottom('panelMessages');
+    hideSuggestions();
+  }
+
+  // ── ADD MESSAGE (expanded) ──────────────────────────────────
+  function addExMsg(text, sender) {
+    const container = document.getElementById('exMessages');
+    const typing    = document.getElementById('exTyping');
+    const div = document.createElement('div');
+    div.className = sender === 'bot' ? 'ex-bot-msg' : 'ex-user-msg';
+    div.innerHTML = formatText(text);
+    container.insertBefore(div, typing);
+    scrollBottom('exMessages');
+    document.getElementById('exSuggestions').style.display = 'none';
+  }
+
+  // ── SEND (mini) ─────────────────────────────────────────────
+  async function sendPanelMsg() {
+    await ensureCSRF();
+    const input = document.getElementById('panelInput');
+    const text  = input.value.trim();
+    if (!text) return;
+
+    addPanelMsg(text, 'user');
+    input.value = '';
+    input.style.height = 'auto';
+
+    document.getElementById('panelTyping').style.display = 'block';
+    scrollBottom('panelMessages');
+
+    try {
+      console.log('Sending to /chatbot/message/:', text); 
+      const res = await fetch('/chatbot/message/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({message: text})
+      });
+      console.log('Response status:', res.status);
+      const data = await res.json();
+      console.log('Response data:', data);
+      document.getElementById('panelTyping').style.display = 'none';
+      addPanelMsg(data.reply || 'Sorry, could not get a response.', 'bot');
+    } catch(e) {
+      console.log('Error:', e);
+      document.getElementById('panelTyping').style.display = 'none';
+      addPanelMsg('Connection error. Please try again.', 'bot');
+    }
+  }
+
+  // ── SEND (expanded) ─────────────────────────────────────────
+  async function sendExMsg() {
+    await ensureCSRF();
+    const input = document.getElementById('exInput');
+    const text  = input.value.trim();
+    if (!text) return;
+
+    addExMsg(text, 'user');
+    input.value = '';
+    input.style.height = 'auto';
+
+    document.getElementById('exTyping').style.display = 'block';
+    scrollBottom('exMessages');
+
+    try {
+      const res = await fetch('/chatbot/message/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({message: text})
+      });
+      const data = await res.json();
+      document.getElementById('exTyping').style.display = 'none';
+      addExMsg(data.reply || 'Sorry, could not get a response.', 'bot');
+    } catch(e) {
+      document.getElementById('exTyping').style.display = 'none';
+      addExMsg('Connection error. Please try again.', 'bot');
+    }
+  }
+
+  // ── QUICK ASK ───────────────────────────────────────────────
+  function quickAsk(text) {
+    document.getElementById('panelInput').value = text;
+    sendPanelMsg();
+  }
+
+  function quickAskEx(text) {
+    document.getElementById('exInput').value = text;
+    sendExMsg();
+  }
+
+  // ── HISTORY ─────────────────────────────────────────────────
+  async function loadHistory(containerId) {
+    try {
+      const res  = await fetch('/chatbot/history/');
+      const data = await res.json();
+      const list = document.getElementById(containerId);
+
+      if (!data.history || data.history.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:#9CA3AF;font-size:13px;padding:40px 20px;">No chat history yet.<br>Start a conversation!</div>';
+        return;
+      }
+
+      list.innerHTML = '';
+      [...data.history].reverse().forEach(item => {
+        const div = document.createElement('div');
+        div.style.cssText = 'background:white;border-radius:10px;padding:12px 14px;border:1px solid #E5E7EB;cursor:pointer;transition:box-shadow 0.15s;';
+        div.onmouseover = () => div.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+        div.onmouseout  = () => div.style.boxShadow = 'none';
+        div.innerHTML = `
+          <div style="font-size:12px;font-weight:600;
+                      color:#1B4332;margin-bottom:5px;">
+            🌾 ${item.question}
+          </div>
+          <div style="font-size:11px;color:#6B7280;line-height:1.5;">
+            ${item.answer.substring(0, 90)}...
+          </div>`;
+        div.onclick = () => {
+          if (expanded) {
+            showExpandedTab('chat');
+            addExMsg(item.question, 'user');
+            addExMsg(item.answer, 'bot');
+          } else {
+            showTab('chat');
+            addPanelMsg(item.question, 'user');
+            addPanelMsg(item.answer, 'bot');
+          }
+        };
+        list.appendChild(div);
+      });
+    } catch(e) {
+      console.log('History error:', e);
+    }
+  }
+
+  // ── KEYBOARD SHORTCUTS ──────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+
+    document.getElementById('panelInput')
+      .addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendPanelMsg();
+        }
+      });
+
+    document.getElementById('panelInput')
+      .addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+      });
+
+    document.getElementById('exInput')
+      .addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendExMsg();
+        }
+      });
+
+    document.getElementById('exInput')
+      .addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+      });
+
+    // Escape key closes overlay
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && expanded) toggleExpand();
+    });
+  });
+</script>
+
 </body>
 </html>
