@@ -611,12 +611,29 @@ function toggleExpand() {
   const overlay = document.getElementById('chatOverlay');
   const panel   = document.getElementById('chatPanel');
   const btn     = document.getElementById('chatToggleBtn');
+
   if (expanded) {
     overlay.style.display = 'flex';
     panel.style.display   = 'none';
     btn.innerHTML = '✕';
-    attachExInputEvents();  // attach events now that element exists
-    setTimeout(() => document.getElementById('exInput').focus(), 100);
+
+    // Force reflow so flex layout calculates correctly on first open
+    const exChat = document.getElementById('exChat');
+    exChat.style.display = 'none';
+    void exChat.offsetHeight; // trigger reflow
+    exChat.style.display = 'flex';
+
+    const exHistory = document.getElementById('exHistory');
+    exHistory.style.display = 'none';
+
+    attachExInputEvents();
+    setTimeout(() => {
+      document.getElementById('exInput').focus();
+      // Scroll messages to bottom
+      const msgs = document.getElementById('exMessages');
+      if (msgs) msgs.scrollTop = msgs.scrollHeight;
+    }, 50);
+
   } else {
     overlay.style.display = 'none';
     panel.style.display   = 'block';
