@@ -617,7 +617,6 @@ function toggleExpand() {
     panel.style.display   = 'none';
     btn.innerHTML = '✕';
 
-    // Force reflow so flex layout calculates correctly on first open
     const exChat = document.getElementById('exChat');
     exChat.style.display = 'none';
     void exChat.offsetHeight; // trigger reflow
