@@ -16,14 +16,17 @@ sys.path.insert(0, BASE_DIR)
 try:
     from bert_bot.advisor import AgricultureAdvisor
     ADVISOR = AgricultureAdvisor(
-        data_path=os.path.join(BASE_DIR, 'bert_bot', 'agriculture_data.json')
+        data_path=os.path.join(
+            BASE_DIR, 'bert_bot', 'agriculture_data.json'
+        ),
+        api_key=os.environ.get("OPENWEATHERMAP_API_KEY", "")
     )
     BERT_READY = True
-    print("BERT model loaded successfully")
+    print("System loaded successfully")
 except Exception as e:
     ADVISOR = None
     BERT_READY = False
-    print(f"BERT load failed: {e}")
+    print(f"Load failed: {e}")
     
 def home(request):
     return render(request, "advisory/home.html", {
@@ -100,28 +103,43 @@ def chatbot_message(request):
 
             if not BERT_READY or ADVISOR is None:
                 return JsonResponse({
-                    "reply": "Advisory model is loading. Please try again in a moment."
+                    "reply": "System loading. Please try again."
                 })
 
-            result = ADVISOR.ask(user_message)
-
+            # Get conversation history for context
             history = request.session.get("chat_history", [])
+
+            # Ask with history
+            result = ADVISOR.ask(user_message, history=history)
+
+            # Save to session
             history.append({
                 "question": user_message,
-                "answer": result["answer"],
+                "answer":   result["answer"],
                 "confidence": result["confidence"]
             })
             request.session["chat_history"] = history[-20:]
             request.session.modified = True
 
-            return JsonResponse({"reply": result["answer"]})
+            return JsonResponse({
+                "reply":      result["answer"],
+                "confidence": result["confidence"],
+                "source":     result.get("source", ""),
+                "district":   result.get("district", ""),
+                "crop":       result.get("crop", "")
+            })
 
         except Exception as e:
             print(f"Chatbot error: {e}")
-            return JsonResponse({"reply": f"Error: {str(e)}"})
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({
+                "reply": f"System error: {str(e)}"
+            })
 
     return JsonResponse({"error": "Method not allowed"}, status=405)
 
 def chatbot_history(request):
     history = request.session.get("chat_history", [])
     return JsonResponse({"history": history})
+
