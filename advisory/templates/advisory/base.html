@@ -578,717 +578,325 @@
 </style>
 
 <script>
+// ── Shared message store ──────────────────────────────────────
 const sharedMessages = [];
-let expanded = false;
 
 function getCookie(name) {
-    const cookies = document.cookie ? document.cookie.split(';') : [];
-    for (let cookie of cookies) {
-        cookie = cookie.trim();
-        if (cookie.startsWith(name + '=')) {
-            return decodeURIComponent(cookie.substring(name.length + 1));
-        }
-    }
-    return '';
+  let value = `; ${document.cookie}`;
+  let parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return '';
 }
 
 async function ensureCSRF() {
-    if (!getCookie('csrftoken')) {
-        try {
-            await fetch('/', {
-                credentials: 'same-origin'
-            });
-        } catch (error) {
-            console.warn('Could not initialize CSRF:', error);
-        }
-    }
+  if (!getCookie('csrftoken')) {
+    await fetch('/', {credentials: 'same-origin'});
+  }
 }
 
-function formatText(text) {
-    if (!text) return '';
-
-    let formatted = String(text);
-
-    formatted = formatted
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-
-    formatted = formatted.replace(
-        /\*\*(.*?)\*\*/g,
-        '<strong>$1</strong>'
-    );
-
-    formatted = formatted.replace(
-        /\n(\d+\.)/g,
-        '<br>$1'
-    );
-
-    formatted = formatted.replace(
-        /\n\n/g,
-        '<br><br>'
-    );
-
-    formatted = formatted.replace(
-        /\n/g,
-        '<br>'
-    );
-
-    return formatted;
+// ── Format text ───────────────────────────────────────────────
+function formatText(t) {
+  if (!t) return '';
+  return t
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n(\d+\.)/g, '<br>$1')
+    .replace(/\n/g, '<br>');
 }
 
+// ── Render all messages to a container ───────────────────────
 function renderMessages(containerId) {
-    const container = document.getElementById(containerId);
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  // Keep welcome message, remove old chat messages
+  const welcome = container.querySelector('.welcome-msg');
+  container.innerHTML = '';
+  if (welcome) container.appendChild(welcome);
 
-    if (!container) return;
-
-    container.innerHTML = '';
-
-    sharedMessages.forEach(message => {
-        const div = document.createElement('div');
-
-        div.className =
-            message.sender === 'bot'
-                ? (containerId === 'exMessages' ? 'ex-bot-msg' : 'bot-msg')
-                : (containerId === 'exMessages' ? 'ex-user-msg' : 'user-msg');
-
-        div.innerHTML = formatText(message.text);
-        container.appendChild(div);
-    });
-
-    container.scrollTop = container.scrollHeight;
+  sharedMessages.forEach(msg => {
+    const div = document.createElement('div');
+    div.className = msg.sender === 'bot'
+      ? (containerId === 'exMessages' ? 'ex-bot-msg' : 'bot-msg')
+      : (containerId === 'exMessages' ? 'ex-user-msg' : 'user-msg');
+    div.innerHTML = formatText(msg.text);
+    container.appendChild(div);
+  });
+  container.scrollTop = container.scrollHeight;
 }
 
+// ── Add message to shared store + render both ────────────────
 function addMessage(text, sender) {
-    if (!text) return;
+  sharedMessages.push({text, sender});
 
-    sharedMessages.push({
-        text: String(text),
-        sender: sender
-    });
+  // Render in mini view
+  const mini = document.getElementById('panelMessages');
+  if (mini) {
+    const div = document.createElement('div');
+    div.className = sender === 'bot' ? 'bot-msg' : 'user-msg';
+    div.innerHTML = formatText(text);
+    mini.appendChild(div);
+    mini.scrollTop = mini.scrollHeight;
+  }
 
-    const mini = document.getElementById('panelMessages');
+  // Render in expanded view if open
+  const ex = document.getElementById('exMessages');
+  if (ex) {
+    const div = document.createElement('div');
+    div.className = sender === 'bot' ? 'ex-bot-msg' : 'ex-user-msg';
+    div.innerHTML = formatText(text);
+    ex.appendChild(div);
+    ex.scrollTop = ex.scrollHeight;
+  }
 
-    if (mini) {
-        const div = document.createElement('div');
-
-        div.className =
-            sender === 'bot'
-                ? 'bot-msg'
-                : 'user-msg';
-
-        div.innerHTML = formatText(text);
-
-        mini.appendChild(div);
-        mini.scrollTop = mini.scrollHeight;
-    }
-
-    const expandedMessages =
-        document.getElementById('exMessages');
-
-    if (expandedMessages) {
-        const div = document.createElement('div');
-
-        div.className =
-            sender === 'bot'
-                ? 'ex-bot-msg'
-                : 'ex-user-msg';
-
-        div.innerHTML = formatText(text);
-
-        expandedMessages.appendChild(div);
-        expandedMessages.scrollTop =
-            expandedMessages.scrollHeight;
-    }
-
-    if (sharedMessages.length > 0) {
-        const suggestions =
-            document.getElementById('suggestions');
-
-        const expandedSuggestions =
-            document.getElementById('exSuggestions');
-
-        if (suggestions) {
-            suggestions.style.display = 'none';
-        }
-
-        if (expandedSuggestions) {
-            expandedSuggestions.style.display = 'none';
-        }
-    }
+  // Hide suggestions after first real message
+  if (sharedMessages.length > 0) {
+    const s1 = document.getElementById('suggestions');
+    const s2 = document.getElementById('exSuggestions');
+    if (s1) s1.style.display = 'none';
+    if (s2) s2.style.display = 'none';
+  }
 }
 
+// ── Show/hide typing indicator ────────────────────────────────
 function setTyping(show) {
-    ['panelTyping', 'exTyping'].forEach(id => {
-        const element = document.getElementById(id);
-
-        if (element) {
-            element.style.display =
-                show ? 'block' : 'none';
-        }
-    });
+  ['panelTyping', 'exTyping'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = show ? 'block' : 'none';
+  });
 }
 
+// ── Core send function ────────────────────────────────────────
 async function sendToBot(message) {
-    if (!message || !message.trim()) return;
+  await ensureCSRF();
+  setTyping(true);
 
-    await ensureCSRF();
-
-    setTyping(true);
-
-    try {
-        const response = await fetch(
-            '/chatbot/message/',
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify({
-                    message: message.trim()
-                })
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        setTyping(false);
-
-        addMessage(
-            data.reply ||
-            data.response ||
-            'Sorry, I could not generate a response.',
-            'bot'
-        );
-
-    } catch (error) {
-        console.error('Chatbot error:', error);
-
-        setTyping(false);
-
-        addMessage(
-            'Connection error. Please try again.',
-            'bot'
-        );
-    }
+  try {
+    const res = await fetch('/chatbot/message/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify({message})
+    });
+    const data = await res.json();
+    setTyping(false);
+    addMessage(data.reply || 'Sorry, no response.', 'bot');
+  } catch(e) {
+    console.error('Chatbot error:', e);
+    setTyping(false);
+    addMessage('Connection error. Please try again.', 'bot');
+  }
 }
 
+// ── Send from mini input ──────────────────────────────────────
 async function sendPanelMsg() {
-    const input =
-        document.getElementById('panelInput');
-
-    if (!input) return;
-
-    const text = input.value.trim();
-
-    if (!text) return;
-
-    addMessage(text, 'user');
-
-    input.value = '';
-    input.style.height = 'auto';
-
-    await sendToBot(text);
+  const input = document.getElementById('panelInput');
+  const text  = input.value.trim();
+  if (!text) return;
+  addMessage(text, 'user');
+  input.value = '';
+  input.style.height = 'auto';
+  await sendToBot(text);
 }
 
+// ── Send from expanded input ──────────────────────────────────
 async function sendExMsg() {
-    const input =
-        document.getElementById('exInput');
-
-    if (!input) return;
-
-    const text = input.value.trim();
-
-    if (!text) return;
-
-    addMessage(text, 'user');
-
-    input.value = '';
-    input.style.height = 'auto';
-
-    await sendToBot(text);
+  const input = document.getElementById('exInput');
+  const text  = input.value.trim();
+  if (!text) return;
+  addMessage(text, 'user');
+  input.value = '';
+  input.style.height = 'auto';
+  await sendToBot(text);
 }
 
+// ── Quick suggestions — directly send ────────────────────────
 function quickAsk(text) {
-    const panel =
-        document.getElementById('chatPanel');
-
-    if (panel && panel.style.display === 'none') {
-        toggleChat();
-    }
-
-    addMessage(text, 'user');
-    sendToBot(text);
+  const panel = document.getElementById('chatPanel');
+  if (panel.style.display === 'none') toggleChat();
+  addMessage(text, 'user');
+  sendToBot(text);
 }
 
 function quickAskEx(text) {
-    addMessage(text, 'user');
-    sendToBot(text);
+  addMessage(text, 'user');
+  sendToBot(text);
 }
 
+// ── Toggle mini panel ─────────────────────────────────────────
 function toggleChat() {
-    const panel =
-        document.getElementById('chatPanel');
-
-    const button =
-        document.getElementById('chatToggleBtn');
-
-    if (!panel) {
-        console.warn('Chat panel (#chatPanel) was not found.');
-        return;
-    }
-
-    const isOpen =
-        panel.style.display !== 'none' &&
-        getComputedStyle(panel).display !== 'none';
-
-    if (isOpen) {
-        panel.style.display = 'none';
-
-        if (button) {
-            button.innerHTML = '🌾';
-        }
-
-    } else {
-        panel.style.display = 'block';
-
-        if (button) {
-            button.innerHTML = '✕';
-        }
-
-        setTimeout(() => {
-            const input =
-                document.getElementById('panelInput');
-
-            if (input) {
-                input.focus();
-            }
-        }, 100);
-    }
+  const panel = document.getElementById('chatPanel');
+  const btn   = document.getElementById('chatToggleBtn');
+  const open  = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'block';
+  btn.innerHTML = open ? '🌾' : '✕';
+  if (!open) {
+    setTimeout(() => {
+      document.getElementById('panelInput').focus();
+    }, 100);
+  }
 }
 
+// ── Toggle expanded view ──────────────────────────────────────
+let expanded = false;
 function toggleExpand() {
-    const overlay =
-        document.getElementById('chatOverlay');
+  expanded = !expanded;
+  const overlay = document.getElementById('chatOverlay');
+  const panel   = document.getElementById('chatPanel');
+  const btn     = document.getElementById('chatToggleBtn');
 
-    const panel =
-        document.getElementById('chatPanel');
+  if (expanded) {
+    overlay.style.display = 'flex';
+    panel.style.display   = 'none';
+    btn.innerHTML = '✕';
 
-    const toggleButton =
-        document.getElementById('chatToggleBtn');
+    // Sync all messages to expanded view
+    renderMessages('exMessages');
 
-    if (!overlay) {
-        console.warn('Chat overlay (#chatOverlay) was not found.');
-        return;
+    const exChat = document.getElementById('exChat');
+    if (exChat) {
+      exChat.style.display = 'none';
+      void exChat.offsetHeight;
+      exChat.style.display = 'flex';
     }
+    document.getElementById('exHistory').style.display = 'none';
 
-    expanded = !expanded;
+    attachExInputEvents();
+    setTimeout(() => {
+      document.getElementById('exInput').focus();
+      const msgs = document.getElementById('exMessages');
+      if (msgs) msgs.scrollTop = msgs.scrollHeight;
+    }, 50);
 
-    if (expanded) {
-        overlay.style.display = 'flex';
-
-        if (panel) {
-            panel.style.display = 'none';
-        }
-
-        if (toggleButton) {
-            toggleButton.innerHTML = '✕';
-        }
-
-        renderMessages('exMessages');
-
-        const exChat =
-            document.getElementById('exChat');
-
-        const exHistory =
-            document.getElementById('exHistory');
-
-        if (exChat) {
-            exChat.style.display = 'flex';
-        }
-
-        if (exHistory) {
-            exHistory.style.display = 'none';
-        }
-
-        updateExpandedTabs('chat');
-        attachExInputEvents();
-
-        setTimeout(() => {
-            const input =
-                document.getElementById('exInput');
-
-            if (input) {
-                input.focus();
-            }
-
-            const messages =
-                document.getElementById('exMessages');
-
-            if (messages) {
-                messages.scrollTop =
-                    messages.scrollHeight;
-            }
-        }, 100);
-
-    } else {
-        overlay.style.display = 'none';
-
-        if (panel) {
-            panel.style.display = 'block';
-        }
-    }
+  } else {
+    overlay.style.display = 'none';
+    panel.style.display   = 'block';
+  }
 }
 
+document.getElementById('chatOverlay')
+  .addEventListener('click', function(e) {
+    if (e.target === this) toggleExpand();
+  });
+
+// ── Tabs (mini) ───────────────────────────────────────────────
 function showTab(tab) {
-    const chat =
-        document.getElementById('panelChat');
-
-    const history =
-        document.getElementById('panelHistory');
-
-    if (chat) {
-        chat.style.display =
-            tab === 'chat' ? 'block' : 'none';
-    }
-
-    if (history) {
-        history.style.display =
-            tab === 'history' ? 'block' : 'none';
-    }
-
-    const tabChat =
-        document.getElementById('tabChat');
-
-    const tabHistory =
-        document.getElementById('tabHistory');
-
-    if (tabChat) {
-        tabChat.style.background =
-            tab === 'chat' ? 'white' : 'transparent';
-
-        tabChat.style.color =
-            tab === 'chat' ? '#1B4332' : '#6B7280';
-
-        tabChat.style.borderBottomColor =
-            tab === 'chat' ? '#1B4332' : 'transparent';
-    }
-
-    if (tabHistory) {
-        tabHistory.style.background =
-            tab === 'history' ? 'white' : 'transparent';
-
-        tabHistory.style.color =
-            tab === 'history' ? '#1B4332' : '#6B7280';
-
-        tabHistory.style.borderBottomColor =
-            tab === 'history' ? '#1B4332' : 'transparent';
-    }
-
-    if (tab === 'history') {
-        loadHistory('historyList');
-    }
+  document.getElementById('panelChat').style.display =
+    tab === 'chat' ? 'block' : 'none';
+  document.getElementById('panelHistory').style.display =
+    tab === 'history' ? 'block' : 'none';
+  ['chat', 'history'].forEach(t => {
+    const el = document.getElementById(
+      'tab' + t.charAt(0).toUpperCase() + t.slice(1)
+    );
+    if (!el) return;
+    el.style.background        = t === tab ? 'white' : 'transparent';
+    el.style.color             = t === tab ? '#1B4332' : '#6B7280';
+    el.style.borderBottomColor = t === tab ? '#1B4332' : 'transparent';
+  });
+  if (tab === 'history') loadHistory('historyList');
 }
 
+// ── Tabs (expanded) ───────────────────────────────────────────
 function showExpandedTab(tab) {
-    const chat =
-        document.getElementById('exChat');
-
-    const history =
-        document.getElementById('exHistory');
-
-    if (chat) {
-        chat.style.display =
-            tab === 'chat' ? 'flex' : 'none';
-    }
-
-    if (history) {
-        history.style.display =
-            tab === 'history' ? 'flex' : 'none';
-    }
-
-    updateExpandedTabs(tab);
-
-    if (tab === 'history') {
-        loadHistory('exHistory');
-    }
+  const exChat    = document.getElementById('exChat');
+  const exHistory = document.getElementById('exHistory');
+  if (exChat)    exChat.style.display    = tab === 'chat' ? 'flex' : 'none';
+  if (exHistory) exHistory.style.display = tab === 'history' ? 'flex' : 'none';
+  document.getElementById('exTabChat').style.opacity =
+    tab === 'chat' ? '1' : '0.6';
+  document.getElementById('exTabHistory').style.opacity =
+    tab === 'history' ? '1' : '0.6';
+  if (tab === 'history') loadHistory('exHistory');
 }
 
-function updateExpandedTabs(tab) {
-    const chatTab =
-        document.getElementById('exTabChat');
-
-    const historyTab =
-        document.getElementById('exTabHistory');
-
-    if (chatTab) {
-        chatTab.style.opacity =
-            tab === 'chat' ? '1' : '0.6';
-    }
-
-    if (historyTab) {
-        historyTab.style.opacity =
-            tab === 'history' ? '1' : '0.6';
-    }
-}
-
+// ── History ───────────────────────────────────────────────────
 async function loadHistory(containerId) {
-    const list =
-        document.getElementById(containerId);
-
+  try {
+    const res  = await fetch('/chatbot/history/');
+    const data = await res.json();
+    const list = document.getElementById(containerId);
     if (!list) return;
 
-    try {
-        const response =
-            await fetch('/chatbot/history/', {
-                credentials: 'same-origin'
-            });
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data =
-            await response.json();
-
-        if (
-            !data.history ||
-            data.history.length === 0
-        ) {
-            list.innerHTML = `
-                <div style="
-                    text-align:center;
-                    color:#9CA3AF;
-                    font-size:12px;
-                    padding:30px;
-                ">
-                    No history yet. Start chatting!
-                </div>
-            `;
-
-            return;
-        }
-
-        list.innerHTML = '';
-
-        [...data.history]
-            .reverse()
-            .forEach(item => {
-                const div =
-                    document.createElement('div');
-
-                div.style.cssText = `
-                    background:white;
-                    border-radius:10px;
-                    padding:12px;
-                    border:1px solid #E5E7EB;
-                    cursor:pointer;
-                    margin-bottom:8px;
-                `;
-
-                const question =
-                    item.question || '';
-
-                const answer =
-                    item.answer || '';
-
-                div.innerHTML = `
-                    <div style="
-                        font-size:12px;
-                        font-weight:600;
-                        color:#1B4332;
-                        margin-bottom:4px;
-                    ">
-                        🌾 ${escapeHTML(question)}
-                    </div>
-                    <div style="
-                        font-size:11px;
-                        color:#6B7280;
-                        line-height:1.4;
-                    ">
-                        ${escapeHTML(
-                            answer.length > 90
-                                ? answer.substring(0, 90) + '...'
-                                : answer
-                        )}
-                    </div>
-                `;
-
-                div.addEventListener(
-                    'click',
-                    () => {
-                        addMessage(question, 'user');
-                        addMessage(answer, 'bot');
-
-                        if (expanded) {
-                            showExpandedTab('chat');
-                        } else {
-                            showTab('chat');
-                        }
-                    }
-                );
-
-                list.appendChild(div);
-            });
-
-    } catch (error) {
-        console.error('History error:', error);
-
-        list.innerHTML = `
-            <div style="
-                text-align:center;
-                color:#9CA3AF;
-                font-size:12px;
-                padding:30px;
-            ">
-                Unable to load conversation history.
-            </div>
-        `;
+    if (!data.history || data.history.length === 0) {
+      list.innerHTML = (
+        '<div style="text-align:center;color:#9CA3AF;'
+        'font-size:12px;padding:30px;">'
+        'No history yet. Start chatting!</div>'
+      );
+      return;
     }
+
+    list.innerHTML = '';
+    [...data.history].reverse().forEach(item => {
+      const div = document.createElement('div');
+      div.style.cssText = (
+        'background:white;border-radius:10px;padding:12px;'
+        'border:1px solid #E5E7EB;cursor:pointer;margin-bottom:8px;'
+      );
+      div.innerHTML = `
+        <div style="font-size:12px;font-weight:600;
+                    color:#1B4332;margin-bottom:4px;">
+          🌾 ${item.question}
+        </div>
+        <div style="font-size:11px;color:#6B7280;line-height:1.4;">
+          ${item.answer.substring(0, 90)}...
+        </div>`;
+      div.onclick = () => {
+        addMessage(item.question, 'user');
+        addMessage(item.answer, 'bot');
+        if (expanded) {
+          showExpandedTab('chat');
+        } else {
+          showTab('chat');
+        }
+      };
+      list.appendChild(div);
+    });
+  } catch(e) {
+    console.error('History error:', e);
+  }
 }
 
-function escapeHTML(value) {
-    return String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-
+// ── Attach expanded input events (once) ──────────────────────
 function attachExInputEvents() {
-    const input =
-        document.getElementById('exInput');
-
-    if (!input) return;
-
-    if (input.dataset.eventsAttached === 'true') {
-        return;
-    }
-
-    input.addEventListener(
-        'keydown',
-        function(event) {
-            if (
-                event.key === 'Enter' &&
-                !event.shiftKey
-            ) {
-                event.preventDefault();
-                sendExMsg();
-            }
-        }
-    );
-
-    input.addEventListener(
-        'input',
-        function() {
-            this.style.height = 'auto';
-
-            this.style.height =
-                Math.min(
-                    this.scrollHeight,
-                    120
-                ) + 'px';
-        }
-    );
-
-    input.dataset.eventsAttached = 'true';
+  const exInput = document.getElementById('exInput');
+  if (exInput && !exInput._attached) {
+    exInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendExMsg();
+      }
+    });
+    exInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+    exInput._attached = true;
+  }
 }
 
-function attachPanelInputEvents() {
-    const input =
-        document.getElementById('panelInput');
-
-    if (!input) return;
-
-    if (input.dataset.eventsAttached === 'true') {
-        return;
-    }
-
-    input.addEventListener(
-        'keydown',
-        function(event) {
-            if (
-                event.key === 'Enter' &&
-                !event.shiftKey
-            ) {
-                event.preventDefault();
-                sendPanelMsg();
-            }
-        }
-    );
-
-    input.addEventListener(
-        'input',
-        function() {
-            this.style.height = 'auto';
-
-            this.style.height =
-                Math.min(
-                    this.scrollHeight,
-                    100
-                ) + 'px';
-        }
-    );
-
-    input.dataset.eventsAttached = 'true';
-}
-
-document.addEventListener(
-    'DOMContentLoaded',
-    function() {
-        attachPanelInputEvents();
-        attachExInputEvents();
-
-        const overlay =
-            document.getElementById('chatOverlay');
-
-        if (overlay) {
-            overlay.addEventListener(
-                'click',
-                function(event) {
-                    if (event.target === overlay) {
-                        toggleExpand();
-                    }
-                }
-            );
-        }
-
-        document.addEventListener(
-            'keydown',
-            function(event) {
-                if (
-                    event.key === 'Escape' &&
-                    expanded
-                ) {
-                    toggleExpand();
-                }
-            }
-        );
-
-        const exHistory =
-            document.getElementById('exHistory');
-
-        if (exHistory) {
-            exHistory.style.display = 'none';
-        }
-
-        const exChat =
-            document.getElementById('exChat');
-
-        if (exChat) {
-            exChat.style.display = 'flex';
-        }
-    }
-);
+// ── DOMContentLoaded ──────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const panelInput = document.getElementById('panelInput');
+  if (panelInput) {
+    panelInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendPanelMsg();
+      }
+    });
+    panelInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+    });
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && expanded) toggleExpand();
+  });
+});
 </script>
 </body>
 </html>
