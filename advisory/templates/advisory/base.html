@@ -579,6 +579,9 @@
 
 <script>
 // ── CSRF ──────────────────────────────────────────────────────
+// ── Shared message store ──────────────────────────────────────
+const sharedMessages = [];
+
 function getCookie(name) {
   let value = `; ${document.cookie}`;
   let parts = value.split(`; ${name}=`);
@@ -592,19 +595,152 @@ async function ensureCSRF() {
   }
 }
 
-// ── TOGGLE ────────────────────────────────────────────────────
-function toggleChat() {
-  const panel = document.getElementById('chatPanel');
-  const btn   = document.getElementById('chatToggleBtn');
-  const isOpen = panel.style.display !== 'none';
-  panel.style.display = isOpen ? 'none' : 'block';
-  btn.innerHTML = isOpen ? '🌾' : '✕';
-  if (!isOpen) {
-    setTimeout(() => document.getElementById('panelInput').focus(), 100);
+// ── Format text ───────────────────────────────────────────────
+function formatText(t) {
+  if (!t) return '';
+  return t
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n(\d+\.)/g, '<br>$1')
+    .replace(/\n/g, '<br>');
+}
+
+// ── Render all messages to a container ───────────────────────
+function renderMessages(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  // Keep welcome message, remove old chat messages
+  const welcome = container.querySelector('.welcome-msg');
+  container.innerHTML = '';
+  if (welcome) container.appendChild(welcome);
+
+  sharedMessages.forEach(msg => {
+    const div = document.createElement('div');
+    div.className = msg.sender === 'bot'
+      ? (containerId === 'exMessages' ? 'ex-bot-msg' : 'bot-msg')
+      : (containerId === 'exMessages' ? 'ex-user-msg' : 'user-msg');
+    div.innerHTML = formatText(msg.text);
+    container.appendChild(div);
+  });
+  container.scrollTop = container.scrollHeight;
+}
+
+// ── Add message to shared store + render both ────────────────
+function addMessage(text, sender) {
+  sharedMessages.push({text, sender});
+
+  // Render in mini view
+  const mini = document.getElementById('panelMessages');
+  if (mini) {
+    const div = document.createElement('div');
+    div.className = sender === 'bot' ? 'bot-msg' : 'user-msg';
+    div.innerHTML = formatText(text);
+    mini.appendChild(div);
+    mini.scrollTop = mini.scrollHeight;
+  }
+
+  // Render in expanded view if open
+  const ex = document.getElementById('exMessages');
+  if (ex) {
+    const div = document.createElement('div');
+    div.className = sender === 'bot' ? 'ex-bot-msg' : 'ex-user-msg';
+    div.innerHTML = formatText(text);
+    ex.appendChild(div);
+    ex.scrollTop = ex.scrollHeight;
+  }
+
+  // Hide suggestions after first real message
+  if (sharedMessages.length > 0) {
+    const s1 = document.getElementById('suggestions');
+    const s2 = document.getElementById('exSuggestions');
+    if (s1) s1.style.display = 'none';
+    if (s2) s2.style.display = 'none';
   }
 }
 
-// ── EXPAND ────────────────────────────────────────────────────
+// ── Show/hide typing indicator ────────────────────────────────
+function setTyping(show) {
+  ['panelTyping', 'exTyping'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = show ? 'block' : 'none';
+  });
+}
+
+// ── Core send function ────────────────────────────────────────
+async function sendToBot(message) {
+  await ensureCSRF();
+  setTyping(true);
+
+  try {
+    const res = await fetch('/chatbot/message/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify({message})
+    });
+    const data = await res.json();
+    setTyping(false);
+    addMessage(data.reply || 'Sorry, no response.', 'bot');
+  } catch(e) {
+    console.error('Chatbot error:', e);
+    setTyping(false);
+    addMessage('Connection error. Please try again.', 'bot');
+  }
+}
+
+// ── Send from mini input ──────────────────────────────────────
+async function sendPanelMsg() {
+  const input = document.getElementById('panelInput');
+  const text  = input.value.trim();
+  if (!text) return;
+  addMessage(text, 'user');
+  input.value = '';
+  input.style.height = 'auto';
+  await sendToBot(text);
+}
+
+// ── Send from expanded input ──────────────────────────────────
+async function sendExMsg() {
+  const input = document.getElementById('exInput');
+  const text  = input.value.trim();
+  if (!text) return;
+  addMessage(text, 'user');
+  input.value = '';
+  input.style.height = 'auto';
+  await sendToBot(text);
+}
+
+// ── Quick suggestions — directly send ────────────────────────
+function quickAsk(text) {
+  const panel = document.getElementById('chatPanel');
+  if (panel.style.display === 'none') toggleChat();
+  addMessage(text, 'user');
+  sendToBot(text);
+}
+
+function quickAskEx(text) {
+  addMessage(text, 'user');
+  sendToBot(text);
+}
+
+// ── Toggle mini panel ─────────────────────────────────────────
+function toggleChat() {
+  const panel = document.getElementById('chatPanel');
+  const btn   = document.getElementById('chatToggleBtn');
+  const open  = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'block';
+  btn.innerHTML = open ? '🌾' : '✕';
+  if (!open) {
+    setTimeout(() => {
+      document.getElementById('panelInput').focus();
+    }, 100);
+  }
+}
+
+// ── Toggle expanded view ──────────────────────────────────────
 let expanded = false;
 function toggleExpand() {
   expanded = !expanded;
@@ -617,18 +753,20 @@ function toggleExpand() {
     panel.style.display   = 'none';
     btn.innerHTML = '✕';
 
-    const exChat = document.getElementById('exChat');
-    exChat.style.display = 'none';
-    void exChat.offsetHeight; // trigger reflow
-    exChat.style.display = 'flex';
+    // Sync all messages to expanded view
+    renderMessages('exMessages');
 
-    const exHistory = document.getElementById('exHistory');
-    exHistory.style.display = 'none';
+    const exChat = document.getElementById('exChat');
+    if (exChat) {
+      exChat.style.display = 'none';
+      void exChat.offsetHeight;
+      exChat.style.display = 'flex';
+    }
+    document.getElementById('exHistory').style.display = 'none';
 
     attachExInputEvents();
     setTimeout(() => {
       document.getElementById('exInput').focus();
-      // Scroll messages to bottom
       const msgs = document.getElementById('exMessages');
       if (msgs) msgs.scrollTop = msgs.scrollHeight;
     }, 50);
@@ -644,13 +782,13 @@ document.getElementById('chatOverlay')
     if (e.target === this) toggleExpand();
   });
 
-// ── TABS (mini) ───────────────────────────────────────────────
+// ── Tabs (mini) ───────────────────────────────────────────────
 function showTab(tab) {
   document.getElementById('panelChat').style.display =
     tab === 'chat' ? 'block' : 'none';
   document.getElementById('panelHistory').style.display =
     tab === 'history' ? 'block' : 'none';
-  ['chat','history'].forEach(t => {
+  ['chat', 'history'].forEach(t => {
     const el = document.getElementById(
       'tab' + t.charAt(0).toUpperCase() + t.slice(1)
     );
@@ -662,12 +800,12 @@ function showTab(tab) {
   if (tab === 'history') loadHistory('historyList');
 }
 
-// ── TABS (expanded) ───────────────────────────────────────────
+// ── Tabs (expanded) ───────────────────────────────────────────
 function showExpandedTab(tab) {
-  document.getElementById('exChat').style.display =
-    tab === 'chat' ? 'flex' : 'none';
-  document.getElementById('exHistory').style.display =
-    tab === 'history' ? 'flex' : 'none';
+  const exChat    = document.getElementById('exChat');
+  const exHistory = document.getElementById('exHistory');
+  if (exChat)    exChat.style.display    = tab === 'chat' ? 'flex' : 'none';
+  if (exHistory) exHistory.style.display = tab === 'history' ? 'flex' : 'none';
   document.getElementById('exTabChat').style.opacity =
     tab === 'chat' ? '1' : '0.6';
   document.getElementById('exTabHistory').style.opacity =
@@ -675,113 +813,7 @@ function showExpandedTab(tab) {
   if (tab === 'history') loadHistory('exHistory');
 }
 
-// ── FORMAT ────────────────────────────────────────────────────
-function formatText(t) {
-  if (!t) return '';
-  return t
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\n\n/g, '<br><br>')
-    .replace(/\n(\d+\.)/g, '<br>$1')
-    .replace(/\n/g, '<br>');
-}
-
-// ── ADD MESSAGE (mini) ────────────────────────────────────────
-function addPanelMsg(text, sender) {
-  const container = document.getElementById('panelMessages');
-  const div = document.createElement('div');
-  div.className = sender === 'bot' ? 'bot-msg' : 'user-msg';
-  div.innerHTML = formatText(text);
-  container.appendChild(div);  // use appendChild not insertBefore
-  container.scrollTop = container.scrollHeight;
-  const sug = document.getElementById('suggestions');
-  if (sug) sug.style.display = 'none';
-}
-
-// ── ADD MESSAGE (expanded) ────────────────────────────────────
-function addExMsg(text, sender) {
-  const container = document.getElementById('exMessages');
-  const div = document.createElement('div');
-  div.className = sender === 'bot' ? 'ex-bot-msg' : 'ex-user-msg';
-  div.innerHTML = formatText(text);
-  container.appendChild(div);  // use appendChild not insertBefore
-  container.scrollTop = container.scrollHeight;
-  const sug = document.getElementById('exSuggestions');
-  if (sug) sug.style.display = 'none';
-}
-
-// ── CORE SEND FUNCTION ────────────────────────────────────────
-async function sendToBot(message, addMsgFn, typingId, scrollId) {
-  await ensureCSRF();
-
-  const typing = document.getElementById(typingId);
-  const scroll = document.getElementById(scrollId);
-  if (typing) typing.style.display = 'block';
-  if (scroll) scroll.scrollTop = scroll.scrollHeight;
-
-  try {
-    const res = await fetch('/chatbot/message/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken')
-      },
-      credentials: 'same-origin',
-      body: JSON.stringify({message: message})
-    });
-
-    const data = await res.json();
-    if (typing) typing.style.display = 'none';
-    addMsgFn(data.reply || 'Sorry, no response received.', 'bot');
-
-  } catch(e) {
-    console.error('Chatbot error:', e);
-    if (typing) typing.style.display = 'none';
-    addMsgFn('Connection error. Please try again.', 'bot');
-  }
-}
-
-// ── SEND (mini) ───────────────────────────────────────────────
-async function sendPanelMsg() {
-  const input = document.getElementById('panelInput');
-  const text  = input.value.trim();
-  if (!text) return;
-
-  addPanelMsg(text, 'user');
-  input.value = '';
-  input.style.height = 'auto';
-
-  await sendToBot(text, addPanelMsg, 'panelTyping', 'panelMessages');
-}
-
-// ── SEND (expanded) ───────────────────────────────────────────
-async function sendExMsg() {
-  const input = document.getElementById('exInput');
-  const text  = input.value.trim();
-  if (!text) return;
-
-  addExMsg(text, 'user');
-  input.value = '';
-  input.style.height = 'auto';
-
-  await sendToBot(text, addExMsg, 'exTyping', 'exMessages');
-}
-
-// ── SUGGESTIONS — directly send on click ──────────────────────
-function quickAsk(text) {
-  // Show panel if not open
-  const panel = document.getElementById('chatPanel');
-  if (panel.style.display === 'none') toggleChat();
-
-  addPanelMsg(text, 'user');
-  sendToBot(text, addPanelMsg, 'panelTyping', 'panelMessages');
-}
-
-function quickAskEx(text) {
-  addExMsg(text, 'user');
-  sendToBot(text, addExMsg, 'exTyping', 'exMessages');
-}
-
-// ── HISTORY ───────────────────────────────────────────────────
+// ── History ───────────────────────────────────────────────────
 async function loadHistory(containerId) {
   try {
     const res  = await fetch('/chatbot/history/');
@@ -790,30 +822,36 @@ async function loadHistory(containerId) {
     if (!list) return;
 
     if (!data.history || data.history.length === 0) {
-      list.innerHTML = '<div style="text-align:center;color:#9CA3AF;font-size:12px;padding:30px;">No history yet. Start chatting!</div>';
+      list.innerHTML = (
+        '<div style="text-align:center;color:#9CA3AF;'
+        'font-size:12px;padding:30px;">'
+        'No history yet. Start chatting!</div>'
+      );
       return;
     }
 
     list.innerHTML = '';
     [...data.history].reverse().forEach(item => {
       const div = document.createElement('div');
-      div.style.cssText = 'background:white;border-radius:10px;padding:12px;border:1px solid #E5E7EB;cursor:pointer;margin-bottom:8px;';
+      div.style.cssText = (
+        'background:white;border-radius:10px;padding:12px;'
+        'border:1px solid #E5E7EB;cursor:pointer;margin-bottom:8px;'
+      );
       div.innerHTML = `
-        <div style="font-size:12px;font-weight:600;color:#1B4332;margin-bottom:4px;">
+        <div style="font-size:12px;font-weight:600;
+                    color:#1B4332;margin-bottom:4px;">
           🌾 ${item.question}
         </div>
         <div style="font-size:11px;color:#6B7280;line-height:1.4;">
           ${item.answer.substring(0, 90)}...
         </div>`;
       div.onclick = () => {
+        addMessage(item.question, 'user');
+        addMessage(item.answer, 'bot');
         if (expanded) {
           showExpandedTab('chat');
-          addExMsg(item.question, 'user');
-          addExMsg(item.answer, 'bot');
         } else {
           showTab('chat');
-          addPanelMsg(item.question, 'user');
-          addPanelMsg(item.answer, 'bot');
         }
       };
       list.appendChild(div);
@@ -823,10 +861,26 @@ async function loadHistory(containerId) {
   }
 }
 
-// ── KEYBOARD EVENTS ───────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+// ── Attach expanded input events (once) ──────────────────────
+function attachExInputEvents() {
+  const exInput = document.getElementById('exInput');
+  if (exInput && !exInput._attached) {
+    exInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendExMsg();
+      }
+    });
+    exInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+    exInput._attached = true;
+  }
+}
 
-  // Panel input — always exists
+// ── DOMContentLoaded ──────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
   const panelInput = document.getElementById('panelInput');
   if (panelInput) {
     panelInput.addEventListener('keydown', e => {
@@ -840,39 +894,10 @@ document.addEventListener('DOMContentLoaded', () => {
       this.style.height = Math.min(this.scrollHeight, 100) + 'px';
     });
   }
-
-  // Expanded input — only attach when overlay opens
-  document.getElementById('chatOverlay')
-    .addEventListener('click', function(e) {
-      if (e.target === this) toggleExpand();
-    });
-
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && expanded) toggleExpand();
   });
 });
-
-// Called when expanded view opens — attach exInput events then
-function attachExInputEvents() {
-  const exInput = document.getElementById('exInput');
-  if (exInput && !exInput._eventsAttached) {
-    exInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendExMsg();
-      }
-    });
-    exInput.addEventListener('input', function() {
-      this.style.height = 'auto';
-      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-    });
-    exInput._eventsAttached = true;
-  }
-}
-
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && expanded) toggleExpand();
-  });
 
 </script>
 </body>
