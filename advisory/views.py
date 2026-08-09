@@ -9,24 +9,20 @@ from .models import District, Crop, CropRule, WeatherData, Advisory
 from .weather_utils import fetch_weather
 from .advisory_engine import get_advisory
 
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 
 try:
     from bert_bot.advisor import AgricultureAdvisor
     ADVISOR = AgricultureAdvisor(
-        data_path=os.path.join(
-            BASE_DIR, 'bert_bot', 'agriculture_data.json'
-        ),
         api_key=os.environ.get("OPENWEATHERMAP_API_KEY", "")
     )
     BERT_READY = True
-    print("System loaded successfully")
+    print("BERT model loaded successfully")
 except Exception as e:
     ADVISOR = None
     BERT_READY = False
-    print(f"Load failed: {e}")
+    print(f"BERT load failed: {e}")
     
 def home(request):
     return render(request, "advisory/home.html", {
