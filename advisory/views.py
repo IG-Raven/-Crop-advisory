@@ -89,51 +89,78 @@ def about_view(request):
     return render(request, "advisory/about.html")
 
 def chatbot_message(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            user_message = data.get("message", "").strip()
+    if request.method != "POST":
+        return JsonResponse(
+            {"error": "Method not allowed"},
+            status=405
+        )
 
-            if not user_message:
-                return JsonResponse({"reply": "Please type a message."})
+    try:
+        data = json.loads(request.body)
+        user_message = data.get("message", "").strip()
 
-            if not BERT_READY or ADVISOR is None:
-                return JsonResponse({
-                    "reply": "System loading. Please try again."
-                })
-
-            # Get conversation history for context
-            history = request.session.get("chat_history", [])
-
-            # Ask with history
-            result = ADVISOR.ask(user_message, history=history)
-
-            # Save to session
-            history.append({
-                "question": user_message,
-                "answer":   result["answer"],
-                "confidence": result["confidence"]
-            })
-            request.session["chat_history"] = history[-20:]
-            request.session.modified = True
-
+        if not user_message:
             return JsonResponse({
-                "reply":      result["answer"],
-                "confidence": result["confidence"],
-                "source":     result.get("source", ""),
-                "district":   result.get("district", ""),
-                "crop":       result.get("crop", "")
+                "reply": "Please type a message."
             })
 
-        except Exception as e:
-            print(f"Chatbot error: {e}")
-            import traceback
-            traceback.print_exc()
+        if not BERT_READY or ADVISOR is None:
             return JsonResponse({
-                "reply": f"System error: {str(e)}"
+                "reply": "System loading. Please try again."
             })
 
-    return JsonResponse({"error": "Method not allowed"}, status=405)
+        history = request.session.get("chat_history", [])
+
+        result = ADVISOR.ask(
+            user_message,
+            history=history
+        )
+
+        if isinstance(result, str):
+            result = {
+                "answer": result,
+                "confidence": 1.0,
+                "source": "assistant",
+                "district": "",
+                "crop": ""
+            }
+
+        answer = result.get(
+            "answer",
+            "Sorry, I could not generate an answer."
+        )
+
+        confidence = result.get(
+            "confidence",
+            0.0
+        )
+
+        history.append({
+            "question": user_message,
+            "answer": answer,
+            "confidence": confidence
+        })
+
+        request.session["chat_history"] = history[-20:]
+        request.session.modified = True
+
+        return JsonResponse({
+            "reply": answer,
+            "confidence": confidence,
+            "source": result.get("source", ""),
+            "district": result.get("district", ""),
+            "crop": result.get("crop", "")
+        })
+
+    except Exception as e:
+        print(f"Chatbot error: {e}")
+
+        import traceback
+        traceback.print_exc()
+
+        return JsonResponse({
+            "reply": f"System error: {str(e)}"
+        })
 
 def chatbot_history(request):
     history = request.session.get("chat_history", [])
