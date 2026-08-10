@@ -2,6 +2,8 @@ Django==4.2
 requests==2.31.0
 numpy
 scikit-learn
+accelerate>=1.1.0
+datasets>=2.14.0
+torch>=2.4.0
+transformers
 sentence-transformers
-torch
-datasets
