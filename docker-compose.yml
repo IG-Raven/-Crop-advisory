@@ -4,7 +4,7 @@ services:
     env_file:
       - .env
     environment:
-      OPENWEATHERMAP_API_KEY: "05837f62afa880aa9c2b90ef1b987f48"
+      OPENWEATHERMAP_API_KEY: ${OPENWEATHERMAP_API_KEY}
     ports:
       - "8000:8000"
     volumes:
