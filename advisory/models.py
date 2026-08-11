@@ -38,6 +38,7 @@ class FarmerProfile(models.Model):
     def __str__(self):
         return f"{self.farmer_id} - {self.user.get_full_name()}"
 
+    @property
     def get_initials(self):
         name = self.user.get_full_name()
         parts = name.strip().split()
@@ -80,3 +81,4 @@ class Advisory(models.Model):
     risk_level = models.CharField(max_length=20, blank=True)
     recommendation = models.JSONField()
     generated_at = models.DateTimeField(auto_now_add=True)
+    
