@@ -48,6 +48,33 @@ class FarmerProfile(models.Model):
             return parts[0][0].upper()
         return "F"
 
+class FarmerCrop(models.Model):
+    """
+    A crop the farmer has actively added to their farm, separate from
+    FarmerProfile.primary_crop (kept for backward compatibility).
+    Supports the dashboard's add/remove-crop flow: a farmer can add
+    several crops, each tracked with its own lifecycle status.
+    """
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    farmer = models.ForeignKey(
+        FarmerProfile, on_delete=models.CASCADE, related_name='farm_crops'
+    )
+    crop = models.ForeignKey(Crop, on_delete=models.CASCADE)
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default='active'
+    )
+    added_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.farmer.farmer_id} - {self.crop.name} ({self.status})"
+
+
 class CropRule(models.Model):
     SEVERITY = [
         ('suitable', 'Suitable'),
@@ -81,4 +108,3 @@ class Advisory(models.Model):
     risk_level = models.CharField(max_length=20, blank=True)
     recommendation = models.JSONField()
     generated_at = models.DateTimeField(auto_now_add=True)
-    

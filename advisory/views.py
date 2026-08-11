@@ -8,6 +8,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
+from django.core.cache import cache
 
 from .models import (
     District,
@@ -17,11 +18,15 @@ from .models import (
     WeatherData,
     Advisory,
 )
+
 from .weather_utils import fetch_weather
 from .advisory_engine import get_advisory
 
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__))
+)
+
 sys.path.insert(0, BASE_DIR)
 
 
@@ -36,22 +41,30 @@ try:
     )
 
     BERT_READY = True
-    print("BERT Agriculture Advisor loaded successfully")
+
+    print(
+        "BERT Agriculture Advisor loaded successfully"
+    )
 
 except Exception as e:
     ADVISOR = None
     BERT_READY = False
-    print(f"BERT Agriculture Advisor load failed: {e}")
+
+    print(
+        f"BERT Agriculture Advisor load failed: {e}"
+    )
 
 
 def generate_farmer_id():
     while True:
-        fid = f"FARM-2026-{random.randint(1000, 9999)}"
+        farmer_id = (
+            f"FARM-2026-{random.randint(1000, 9999)}"
+        )
 
         if not FarmerProfile.objects.filter(
-            farmer_id=fid
+            farmer_id=farmer_id
         ).exists():
-            return fid
+            return farmer_id
 
 
 def home(request):
@@ -108,6 +121,10 @@ def register_view(request):
             "password"
         )
 
+        password_confirmation = request.POST.get(
+            "password_confirmation"
+        )
+
         if not full_name or not phone or not password:
             return render(
                 request,
@@ -115,9 +132,38 @@ def register_view(request):
                 {
                     "districts": District.objects.all(),
                     "crops": Crop.objects.all(),
-                    "error": "Please fill in all required fields."
+                    "error": (
+                        "Please fill in all required fields."
+                    ),
                 }
             )
+
+        if not phone.isdigit() or len(phone) != 10:
+            return render(
+                request,
+                "advisory/register.html",
+                {
+                    "districts": District.objects.all(),
+                    "crops": Crop.objects.all(),
+                    "error": (
+                        "Phone number must be exactly 10 digits."
+                    ),
+                }
+            )
+
+        if password_confirmation is not None:
+            if password != password_confirmation:
+                return render(
+                    request,
+                    "advisory/register.html",
+                    {
+                        "districts": District.objects.all(),
+                        "crops": Crop.objects.all(),
+                        "error": (
+                            "Passwords do not match."
+                        ),
+                    }
+                )
 
         if FarmerProfile.objects.filter(
             phone=phone
@@ -129,7 +175,9 @@ def register_view(request):
                 {
                     "districts": District.objects.all(),
                     "crops": Crop.objects.all(),
-                    "error": "This phone number is already registered."
+                    "error": (
+                        "This phone number is already registered."
+                    ),
                 }
             )
 
@@ -143,7 +191,9 @@ def register_view(request):
                 {
                     "districts": District.objects.all(),
                     "crops": Crop.objects.all(),
-                    "error": "This phone number is already registered."
+                    "error": (
+                        "This phone number is already registered."
+                    ),
                 }
             )
 
@@ -167,7 +217,9 @@ def register_view(request):
                 {
                     "districts": District.objects.all(),
                     "crops": Crop.objects.all(),
-                    "error": "Invalid district or crop selected."
+                    "error": (
+                        "Invalid district or crop selected."
+                    ),
                 }
             )
 
@@ -177,6 +229,7 @@ def register_view(request):
         )
 
         first_name = names[0]
+
         last_name = (
             names[1]
             if len(names) > 1
@@ -264,7 +317,9 @@ def login_view(request):
             request,
             "advisory/login.html",
             {
-                "error": "Invalid phone number or password."
+                "error": (
+                    "Invalid phone number or password."
+                )
             }
         )
 
@@ -306,20 +361,21 @@ def dashboard_view(request):
             profile = FarmerProfile.objects.get(
                 user=request.user
             )
+
         except FarmerProfile.DoesNotExist:
             profile = None
 
         weather = {
             "temperature": "--",
             "humidity": "--",
-            "rainfall": "--"
+            "rainfall": "--",
         }
 
         advisory = {
             "suitability": "unknown",
             "recommendations": [
                 "Could not fetch weather data."
-            ]
+            ],
         }
 
         print(
@@ -364,7 +420,6 @@ def quick_advisory_view(request):
         )
 
         try:
-
             selected_district = District.objects.get(
                 name=district_name
             )
@@ -389,7 +444,7 @@ def quick_advisory_view(request):
                 "suitability": "error",
                 "recommendations": [
                     str(e)
-                ]
+                ],
             }
 
     return render(
@@ -561,7 +616,7 @@ def chatbot_message(request):
                 "matched": "",
                 "source": "assistant",
                 "district": "",
-                "crop": ""
+                "crop": "",
             }
 
         answer = result.get(
@@ -578,7 +633,7 @@ def chatbot_message(request):
             {
                 "question": user_message,
                 "answer": answer,
-                "confidence": confidence
+                "confidence": confidence,
             }
         )
 
@@ -600,7 +655,7 @@ def chatbot_message(request):
                 "crop": result.get(
                     "crop",
                     ""
-                )
+                ),
             }
         )
 
@@ -611,6 +666,7 @@ def chatbot_message(request):
         )
 
         import traceback
+
         traceback.print_exc()
 
         return JsonResponse(
@@ -619,7 +675,7 @@ def chatbot_message(request):
                     "Sorry, an error occurred "
                     "while processing your question."
                 ),
-                "error": str(e)
+                "error": str(e),
             },
             status=500
         )
