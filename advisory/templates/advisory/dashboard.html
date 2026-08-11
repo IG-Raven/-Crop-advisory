@@ -1,10 +1,12 @@
 {% extends "advisory/base.html" %}
-{% block nav_class %}nav-dashboard{% endblock %}
-{% block nav_links %}
-<li class="nav-item"><a href="/" class="nav-link">Home</a></li>
+{% block nav_class %}
+nav-dashboard
 {% endblock %}
-
-{% block nav_right %}
+{% block nav_links %}
+<li class="nav-item">
+  <a href="/" class="nav-link">Home</a>
+</li>
+{% endblock %}
 <div class="lang-group">
   <button class="lang-btn active">English</button>
   <button class="lang-btn">नेपाली</button>
@@ -69,8 +71,6 @@
     </div>
   </div>
 </a>
-{% endblock %}
-
 
 {% block content %}
 
@@ -82,7 +82,6 @@
     margin: 10px auto 30px;
     padding: 80px 0 0 0;
 }
-   ========================= */
 
 .greet-card {
     background: linear-gradient(135deg, #2E7D32, #388E3C);
@@ -191,11 +190,6 @@
     font-size: 22px;
 }
 
-
-/* =========================
-   FARM INFO STRIP
-   ========================= */
-
 .farm-info-strip {
     display: flex;
     gap: 16px;
@@ -241,11 +235,6 @@
 .farm-info-card.id .farm-info-value {
     color: #0EA5E9;
 }
-
-
-/* =========================
-   ADVISORY CTA
-   ========================= */
 
 .advisory-cta {
     display: flex;
