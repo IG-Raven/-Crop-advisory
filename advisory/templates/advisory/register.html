@@ -1,5 +1,5 @@
 {% extends "advisory/base.html" %}
-{% block nav_class %}nav-dashboard{% endblock %}
+{% block nav_class %}nav-transparent{% endblock %}
 {% block content %}
 <style>
   .reg-page {
@@ -20,24 +20,47 @@
     box-shadow: 0 8px 32px rgba(0,0,0,0.15);
   }
 
-  .reg-logo { text-align:center; margin-bottom:24px; }
+  .reg-logo { 
+    text-align:center; 
+    margin-bottom:24px; 
+  }
 
-  .reg-logo .icon { font-size:38px; display:block; margin-bottom:6px; }
+  .reg-logo .icon { 
+    font-size:38px; display:block; 
+    margin-bottom:6px; 
+  }
 
-  .reg-logo h3 { color:#1B4332; font-weight:800; font-size:20px; margin:0; }
+  .reg-logo h3 { 
+    color:#1B4332; 
+    font-weight:800; 
+    font-size:20px; margin:0; 
+  }
 
-  .reg-logo p { color:#6B7280; font-size:13px; margin:4px 0 0; }
-  .form-label { font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; }
+  .reg-logo p { 
+    color:#6B7280; 
+    font-size:13px; 
+    margin:4px 0 0; 
+  }
+
+  .form-label { 
+    font-size:13px; 
+    font-weight:600; 
+    color:#374151; 
+    margin-bottom:5px; 
+  }
 
   .form-control, .form-select {
-    border-radius:8px; border:1.5px solid #E5E7EB;
-    padding:10px 14px; font-size:14px;
+    border-radius:8px; 
+    border:1.5px solid #E5E7EB;
+    padding:10px 14px; 
+    font-size:14px;
   }
   
   .form-control:focus, .form-select:focus {
     border-color:#0EA5E9;
     box-shadow:0 0 0 3px rgba(14,165,233,0.12);
   }
+
   .btn-register {
     background: #4ec4ef;
     color:white; border:none; border-radius:8px;
@@ -45,14 +68,16 @@
     width:100%; margin-top:8px; cursor:pointer;
   }
 
-  .btn-register:hover { opacity:0.92; }
+  .btn-register:hover { 
+    opacity:0.92; 
+  }
 
   .section-label {
     font-size:11px; font-weight:700; color:#9CA3AF;
     text-transform:uppercase; letter-spacing:0.8px;
     margin:18px 0 10px;
   }
-  
+
   .error-box {
     background:#FEE2E2; border:1px solid #FECACA;
     border-radius:8px; padding:10px 14px;
@@ -84,11 +109,22 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Phone Number * </label>
-        <input type="tel" name="phone" class="form-control"
-               placeholder="98XXXXXXXX" required>
-      </div>
-
+        <label for="phone" class="form-label">Phone Number</label>
+        <input
+            type="tel"
+            class="form-control"
+            id="phone"
+            name="phone"
+            maxlength="10"
+            minlength="10"
+            pattern="[0-9]{10}"
+            inputmode="numeric"
+            placeholder="98XXXXXXXX"
+            required
+        >
+        <small class="text-muted">Enter a 10-digit phone number.</small>
+    </div>
+    
       <div class="section-label">Farm Details</div>
 
       <div class="row g-3 mb-3">
@@ -140,14 +176,56 @@
       <div class="section-label">Account Security</div>
 
       <div class="mb-3">
-        <label class="form-label">Password *</label>
-        <input type="password" name="password" class="form-control"
-               placeholder="Minimum 8 characters" minlength="8" required>
-      </div>
+        <label for="password" class="form-label">Password *</label>
+        <input
+            type="password"
+            class="form-control"
+            id="password"
+            name="password"
+            required
+        >
+    </div>
+    
+    <div class="mb-3">
+        <label for="confirm_password" class="form-label">Confirm Password *</label>
+        <input
+            type="password"
+            class="form-control"
+            id="confirm_password"
+            name="confirm_password"
+            required
+        >
+        <div id="passwordError" class="text-danger" style="display:none;">
+            Passwords do not match.
+        </div>
+    </div>
 
       <button type="submit" class="btn-register">
         Create My Account →
       </button>
+        
+      <script>
+        document.querySelector("form").addEventListener("submit", function(e) {
+            const phone = document.getElementById("phone").value;
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirm_password").value;
+            const passwordError = document.getElementById("passwordError");
+        
+            if (!/^\d{10}$/.test(phone)) {
+                e.preventDefault();
+                alert("Phone number must be exactly 10 digits.");
+                return;
+            }
+        
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                passwordError.style.display = "block";
+                return;
+            }
+        
+            passwordError.style.display = "none";
+        });
+      </script>
     </form>
 
     <p style="text-align:center; font-size:13px; color:#6B7280; margin-top:18px;">

@@ -125,7 +125,9 @@
     <button type="submit" class="btn-get-advisory">Get Advisory</button>
   </form>
 
+  {% if not request.user.is_authenticated %}
   <span class="signup-link">Not registered? <a href="/register/">Sign up here</a></span>
+  {% endif %}
 </div>
 
 <div class="feature-grid">

@@ -478,24 +478,24 @@ nav-dashboard
 <div class="dash-wrap">
 
     <div class="greet-card">
-
-        <div class="label">
-            Namaste,
-        </div>
-        <h2>
-            Welcome, {{ farmer_name|default:"Ram Bahadur" }}
-        </h2>
-
-        <div class="sub">
-            स्वागत छ, {{ farmer_name_ne|default:"राम बहादुर" }}
-        </div>
-
-        <div class="meta">
-            <span></span>
-            {{ profile.district.name|default:district|default:"Chitwan" }},
-            Ward {{ profile.ward|default:ward|default:"4" }}
-        </div>
-    </div>
+       <div class="label">Namaste,</div>
+   
+       <h2>
+           Welcome, {{ request.user.get_full_name }}
+       </h2>
+   
+       <div class="sub">
+           स्वागत छ, {{ request.user.first_name }}
+       </div>
+   
+       <div class="meta">
+           <span></span>
+           {{ profile.district.name }}
+           {% if profile.village %}
+               · {{ profile.village }}
+           {% endif %}
+       </div>
+   </div>
 
     <a href="/weather-data/" class="weather-strip">
 
@@ -523,7 +523,7 @@ nav-dashboard
 
                 <div class="label">
                     Live Weather —
-                    {{ profile.district.name|default:district|default:"Chitwan" }}
+                    {{ profile.district.name|default:"Chitwan" }}
                 </div>
 
                 <div class="temp">
@@ -628,7 +628,7 @@ nav-dashboard
         </div>
     </div>
 
-    <a href="/advisory/" class="advisory-cta">
+    <a href="/quick-advisory/" class="advisory-cta">
 
         <div>
 
@@ -656,7 +656,7 @@ nav-dashboard
         <select>
 
             <option>
-                📍 {{ profile.district.name|default:district|default:"Chitwan" }}
+                📍 {{ profile.district.name|default:"Chitwan" }}
             </option>
 
             <option>Bardiya</option>
@@ -669,7 +669,7 @@ nav-dashboard
         <select>
 
             <option>
-                🌾 {{ profile.primary_crop.name|default:crop|default:"Rice (Dhan)" }}
+                🌾 {{ profile.primary_crop.name|default:"Rice (Dhan)" }}
             </option>
 
             <option>Wheat (Gahu)</option>
