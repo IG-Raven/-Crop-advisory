@@ -1,205 +1,148 @@
 {% extends "advisory/base.html" %}
+{% block nav_class %}nav-dashboard{% endblock %}
 {% block content %}
 <style>
-  .register-wrap { 
-    padding: 40px; 
-    max-width: 800px; 
-    margin: 0 auto; 
+  .reg-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1B4332 0%, #0EA5E9 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 100px 20px 40px;
   }
-
-  .register-card { 
-    background: white; 
-    border-radius: 12px; 
-    padding: 36px; 
-    box-shadow: 0 2px 10px rgba(0,0,0,0.06); 
+  .reg-box {
+    background: white;
+    border-radius: 16px;
+    padding: 36px;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
   }
-
-  .register-card h4 { 
-    color: #1B4332; 
-    font-weight: 700; 
-    margin-bottom: 24px; 
+  .reg-logo { text-align:center; margin-bottom:24px; }
+  .reg-logo .icon { font-size:38px; display:block; margin-bottom:6px; }
+  .reg-logo h3 { color:#1B4332; font-weight:800; font-size:20px; margin:0; }
+  .reg-logo p { color:#6B7280; font-size:13px; margin:4px 0 0; }
+  .form-label { font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; }
+  .form-control, .form-select {
+    border-radius:8px; border:1.5px solid #E5E7EB;
+    padding:10px 14px; font-size:14px;
   }
-
-  .form-label { 
-    font-weight: 600; 
-    font-size: 13px; 
-    color: #374151; 
-    margin-bottom: 4px; 
+  .form-control:focus, .form-select:focus {
+    border-color:#0EA5E9;
+    box-shadow:0 0 0 3px rgba(14,165,233,0.12);
   }
-
-  .form-control, .form-select { 
-    border-radius: 6px; 
-    border: 1px solid #D1D5DB; 
-    padding: 8px 12px; 
+  .btn-register {
+    background:linear-gradient(135deg,#1B4332,#2D6A4F);
+    color:white; border:none; border-radius:8px;
+    padding:12px; font-size:15px; font-weight:700;
+    width:100%; margin-top:8px; cursor:pointer;
   }
-  
-  .location-box {
-    background: #F0FDF4; 
-    border-radius: 8px; 
-    padding: 16px; 
-    text-align: center; 
-    margin: 20px 0;
+  .btn-register:hover { opacity:0.92; }
+  .section-label {
+    font-size:11px; font-weight:700; color:#9CA3AF;
+    text-transform:uppercase; letter-spacing:0.8px;
+    margin:18px 0 10px;
   }
-  
-  .location-box .label { 
-    font-weight: 600; 
-    color: #374151; 
-    margin-bottom: 10px; 
-  }
-    
-  .btn-location { 
-    background: #0078D4; 
-    color: white; 
-    border: none; 
-    border-radius: 6px; 
-    padding: 8px 20px; 
-    font-weight: 500; 
-  }
-
-  .crop-option {
-    border: 1px solid #E5E7EB; 
-    border-radius: 10px; 
-    padding: 16px 10px; 
-    text-align: center;
-    cursor: pointer; transition: 0.15s;
-  }
-  
-  .crop-option:hover, .crop-option.selected { 
-    border-color: #1B4332; 
-    background: #F0FDF4; 
-  }
-  
-  .crop-option .emoji { 
-    font-size: 30px; 
-    display: block; 
-    margin-bottom: 6px; 
-  }
-  
-  .crop-option .name { 
-    font-size: 13px; 
-    font-weight: 500; 
-    color: #374151; 
-  }
-  
-  .btn-cancel { 
-    background: #F3F4F6; 
-    color: #374151; 
-    border: none; 
-    border-radius: 6px; 
-    padding: 8px 26px; 
-  }
-
-  .btn-create { 
-    background: #22C55E; 
-    color: white; 
-    border: none; 
-    border-radius: 6px; 
-    padding: 8px 26px; 
-    font-weight: 600; 
-  }
-
-  .site-nav {
-  background:linear-gradient(135deg,#1565C0,#1E88E5)!important;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15) !important;
+  .error-box {
+    background:#FEE2E2; border:1px solid #FECACA;
+    border-radius:8px; padding:10px 14px;
+    font-size:13px; color:#991B1B; margin-bottom:16px;
   }
 </style>
 
-<div class="register-wrap">
-  <div class="register-card">
-    <h4>Farmer Registration</h4>
+<div class="reg-page">
+  <div class="reg-box">
+    <div class="reg-logo">
+      <span class="icon">🌾</span>
+      <h3>Create Farmer Account</h3>
+      <p>Join CropAdvisory Nepal — किसान खाता बनाउनुहोस्</p>
+    </div>
+
+    {% if error %}
+    <div class="error-box">⚠ {{ error }}</div>
+    {% endif %}
+
     <form method="post">
       {% csrf_token %}
-      <div class="row mb-3">
-        <div class="col-md-6">
-          <label class="form-label">Full Name</label>
-          <input type="text" name="full_name" class="form-control" placeholder="Eg: Ram Bahadur" required>
+
+      <div class="section-label">Personal Information</div>
+
+      <div class="mb-3">
+        <label class="form-label">Full Name *</label>
+        <input type="text" name="full_name" class="form-control"
+               placeholder="e.g. Ram Bahadur Thapa" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Phone Number * (used for login)</label>
+        <input type="tel" name="phone" class="form-control"
+               placeholder="98XXXXXXXX" required>
+      </div>
+
+      <div class="section-label">Farm Details</div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-6">
+          <label class="form-label">District *</label>
+          <select name="district" class="form-select" required>
+            <option value="" disabled selected>Select District</option>
+            {% for d in districts %}
+            <option value="{{ d.id }}">{{ d.name }}</option>
+            {% endfor %}
+          </select>
         </div>
-        <div class="col-md-6">
-          <label class="form-label">Farmer ID</label>
-          <input type="text" name="farmer_id" class="form-control" placeholder="Eg: 7474 (4-digits)" maxlength="4" required>
+        <div class="col-6">
+          <label class="form-label">Village / Location</label>
+          <input type="text" name="village" class="form-control"
+                 placeholder="Your village name">
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-6">
+          <label class="form-label">Field Area (Ropani) *</label>
+          <input type="number" name="field_area" class="form-control"
+                 placeholder="e.g. 4" step="0.1" min="0.1" required>
+        </div>
+        <div class="col-6">
+          <label class="form-label">Soil Type *</label>
+          <select name="soil_type" class="form-select" required>
+            <option value="" disabled selected>Select Soil</option>
+            <option value="clay">Clay (माटो)</option>
+            <option value="sandy">Sandy (बालुवा)</option>
+            <option value="loam">Loam (दोमट)</option>
+            <option value="silt">Silt (सिल्ट)</option>
+            <option value="mixed">Mixed (मिश्रित)</option>
+          </select>
         </div>
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Phone Number</label>
-        <input type="tel" name="phone" class="form-control" placeholder="Eg: 9876543210" required>
+        <label class="form-label">Primary Crop *</label>
+        <select name="primary_crop" class="form-select" required>
+          <option value="" disabled selected>Select your main crop</option>
+          {% for c in crops %}
+          <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+        </select>
       </div>
+
+      <div class="section-label">Account Security</div>
 
       <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+        <label class="form-label">Password *</label>
+        <input type="password" name="password" class="form-control"
+               placeholder="Minimum 8 characters" minlength="8" required>
       </div>
 
-      <div class="location-box">
-        <div class="label">Land Location</div>
-        <button type="button" class="btn-location">📍 Add Your Location</button>
-        <input type="hidden" name="latitude" id="latitude">
-        <input type="hidden" name="longitude" id="longitude">
-      </div>
-
-      <div class="row mb-4">
-        <div class="col-md-6">
-          <label class="form-label">Land Size</label>
-          <select name="land_size" class="form-select">
-            <option value="">Select</option>
-            <option value="small">Small (&lt; 1 Bigha)</option>
-            <option value="medium">Medium (1–3 Bigha)</option>
-            <option value="large">Large (&gt; 3 Bigha)</option>
-          </select>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Soil Type</label>
-          <select name="soil_type" class="form-select">
-            <option value="">Select</option>
-            <option value="clay">Clay</option>
-            <option value="loam">Loam</option>
-            <option value="sandy">Sandy</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="mb-4">
-        <label class="form-label">Primary Crops</label>
-        <div class="text-muted mb-2" style="font-size:12px;">Select your main crops</div>
-        <div class="row g-3">
-          <div class="col-3">
-            <label class="crop-option d-block">
-              <input type="checkbox" name="crops" value="Wheat" class="d-none">
-              <span class="emoji">🌾</span><span class="name">Rice</span>
-            </label>
-          </div>
-          <div class="col-3">
-            <label class="crop-option d-block">
-              <input type="checkbox" name="crops" value="Wheat" class="d-none">
-              <span class="emoji">🌿</span><span class="name">Wheat</span>
-            </label>
-          </div>
-          <div class="col-3">
-            <label class="crop-option d-block">
-              <input type="checkbox" name="crops" value="Maize" class="d-none">
-              <span class="emoji">🌽</span><span class="name">Maize</span>
-            </label>
-          </div>
-          <div class="col-3">
-            <label class="crop-option d-block">
-              <input type="checkbox" name="crops" value="Mixed Vegetables" class="d-none">
-              <span class="emoji">🥦</span><span class="name">Mixed<br>Vegetables</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div class="d-flex justify-content-end gap-2">
-        <a href="/" class="btn-cancel">Cancel</a>
-        <button type="submit" class="btn-create">Create Account</button>
-      </div>
+      <button type="submit" class="btn-register">
+        Create My Account →
+      </button>
     </form>
+
+    <p style="text-align:center; font-size:13px; color:#6B7280; margin-top:18px;">
+      Already registered? <a href="/login/" style="color:#0EA5E9; font-weight:600;">Sign in here</a>
+    </p>
   </div>
 </div>
-
-<script>
-  document.querySelectorAll('.crop-option').forEach(el => {
-    el.addEventListener('click', () => el.classList.toggle('selected'));
-  });
-</script>
 {% endblock %}

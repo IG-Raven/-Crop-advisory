@@ -9,401 +9,751 @@
   <button class="lang-btn active">English</button>
   <button class="lang-btn">नेपाली</button>
 </div>
-<a href="/logout/" class="btn-login-nav">Sign Out</a>
+
+<a href="/weather-data/" class="weather-strip">
+  <div class="left">
+    <div class="icon">
+      {% if weather.temperature != "--" %}
+        {% if weather.temperature > 35 %}
+          🌤️
+        {% elif weather.rainfall > 10 %}
+          🌧️
+        {% else %}
+          ☀️
+        {% endif %}
+      {% else %}
+        🌡️
+      {% endif %}
+    </div>
+
+    <div>
+      <div class="label">
+        Live Weather — {{ profile.district.name }}
+      </div>
+
+      <div class="temp">
+        {{ weather.temperature }}°C
+      </div>
+
+      <div class="weather-condition">
+        {{ weather.condition|default:"Clear" }}
+      </div>
+    </div>
+  </div>
+
+  <div class="weather-values">
+
+    <div class="humidity">
+      <div class="label">Humidity</div>
+      <div class="val">
+        {{ weather.humidity }}%
+      </div>
+    </div>
+
+    <div class="humidity">
+      <div class="label">Rainfall</div>
+      <div class="val">
+        {{ weather.rainfall }}mm
+      </div>
+    </div>
+
+    <div class="humidity">
+      <div class="label">Wind</div>
+      <div class="val">
+        {{ weather.wind_speed|default:"--" }} m/s
+      </div>
+    </div>
+
+    <div class="weather-arrow">
+      ›
+    </div>
+  </div>
+</a>
 {% endblock %}
+
+
 {% block content %}
+
 <style>
+
 .dash-wrap {
     width: 94%;
     max-width: 1600px;
     margin: 10px auto 30px;
     padding: 80px 0 0 0;
 }
+   ========================= */
 
-.greet-card{
-    background:linear-gradient(135deg,#2E7D32,#388E3C);
-    color:#fff;
-    padding:28px 36px;
-    border-radius:18px;
-    margin-bottom:24px;
-    box-shadow:0 8px 22px rgba(0,0,0,.08);
+.greet-card {
+    background: linear-gradient(135deg, #2E7D32, #388E3C);
+    color: #fff;
+    padding: 28px 36px;
+    border-radius: 18px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 22px rgba(0,0,0,.08);
 }
 
-.greet-card .label{
-    font-size:14px;
-    opacity:.9;
+.greet-card .label {
+    font-size: 14px;
+    opacity: .9;
 }
 
-.greet-card h2{
-    margin:6px 0;
-    font-size:34px;
-    font-weight:700;
+.greet-card h2 {
+    margin: 6px 0;
+    font-size: 34px;
+    font-weight: 700;
 }
 
-.greet-card .sub{
-    font-size:17px;
-    margin-bottom:14px;
-    opacity:.95;
+.greet-card .sub {
+    font-size: 17px;
+    margin-bottom: 14px;
+    opacity: .95;
 }
 
-.greet-card .meta{
-    font-size:14px;
+.greet-card .meta {
+    font-size: 14px;
 }
 
-.greet-card .meta span{
-    display:inline-block;
-    width:8px;
-    height:8px;
-    border-radius:50%;
-    background:#F59E0B;
-    margin-right:8px;
+.greet-card .meta span {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #F59E0B;
+    margin-right: 8px;
 }
 
-.weather-strip{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    background:#fff;
-    border:1px solid #DCEFE3;
-    border-top:4px solid #1565C0;
-    border-radius:14px;
-    padding:18px 24px;
-    margin-bottom:24px;
-    text-decoration:none;
-    color:inherit;
-    transition:.25s;
+.weather-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #DCEFE3;
+    border-top: 4px solid #1565C0;
+    border-radius: 14px;
+    padding: 18px 24px;
+    margin-bottom: 24px;
+    text-decoration: none;
+    color: inherit;
+    transition: .25s;
 }
 
-.weather-strip:hover{
-    box-shadow:0 8px 18px rgba(0,0,0,.08);
-    color:inherit;
+.weather-strip:hover {
+    box-shadow: 0 8px 18px rgba(0,0,0,.08);
+    color: inherit;
 }
 
-.weather-strip .left{
-    display:flex;
-    align-items:center;
-    gap:18px;
+.weather-strip .left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
 }
 
-.weather-strip .icon{
-    font-size:38px;
+.weather-strip .icon {
+    font-size: 38px;
 }
 
-.weather-strip .label{
-    font-size:14px;
-    color:#6B7280;
+.weather-strip .label {
+    font-size: 14px;
+    color: #6B7280;
 }
 
-.weather-strip .temp{
-    font-size:28px;
-    font-weight:700;
-    color:#14532D;
+.weather-strip .temp {
+    font-size: 28px;
+    font-weight: 700;
+    color: #14532D;
 }
 
-.weather-strip .humidity{
-    text-align:right;
+.weather-condition {
+    font-size: 13px;
+    color: #6B7280;
+    margin-top: 4px;
 }
 
-.weather-strip .humidity .val{
-    font-size:28px;
-    font-weight:700;
-    color:#14532D;
+.weather-values {
+    display: flex;
+    gap: 32px;
+    align-items: center;
 }
 
-.advisory-cta{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    background:#1976D2;
-    color:#fff;
-    text-decoration:none;
-    padding:18px 24px;
-    border-radius:14px;
-    margin-bottom:28px;
-    transition:.25s;
+.weather-strip .humidity {
+    text-align: right;
 }
 
-.advisory-cta:hover{
-    background:#1565C0;
-    color:#fff;
+.weather-strip .humidity .val {
+    font-size: 28px;
+    font-weight: 700;
+    color: #14532D;
 }
 
-.advisory-cta .title{
-    font-size:24px;
-    font-weight:700;
+.weather-arrow {
+    color: #0EA5E9;
+    font-size: 22px;
 }
 
-.advisory-cta .sub-ne{
-    margin-top:4px;
-    font-size:14px;
+
+/* =========================
+   FARM INFO STRIP
+   ========================= */
+
+.farm-info-strip {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
 }
 
-.advisory-cta .arrow{
-    font-size:32px;
+.farm-info-card {
+    flex: 1;
+    background: #fff;
+    border-radius: 10px;
+    padding: 14px 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
-.select-label{
-    font-size:18px;
-    font-weight:700;
-    color:#1565C0;
-    text-transform:uppercase;
-    letter-spacing:1px;
-    margin-bottom:12px;
+.farm-info-card.crop {
+    border-top: 3px solid #1B4332;
 }
 
-.context-row{
-    display:flex;
-    gap:24px;
-    margin-bottom:28px;
+.farm-info-card.area {
+    border-top: 3px solid #0EA5E9;
 }
 
-.context-row select{
-    flex:1;
-    height:54px;
-    padding:0 16px;
-    border:1px solid #D7E3F4;
-    border-radius:12px;
-    background:#FAFBFC;
-    font-size:16px;
+.farm-info-card.soil {
+    border-top: 3px solid #52B788;
 }
 
-.context-row select:focus{
-    outline:none;
-    border-color:#1565C0;
-    box-shadow:0 0 0 3px rgba(21,101,192,.15);
+.farm-info-card.id {
+    border-top: 3px solid #F59E0B;
 }
 
-.info-row{
-    display:flex;
-    gap:24px;
-    margin-bottom:24px;
-    align-items:stretch;
+.farm-info-label {
+    font-size: 12px;
+    color: #6B7280;
 }
 
-.info-card{
-    flex:1;
-    background:#fff;
-    border-radius:14px;
-    padding:20px 22px;
-    border:1px solid #EEF2F7;
-    box-shadow:0 4px 12px rgba(0,0,0,.05);
+.farm-info-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1B4332;
+    margin-top: 4px;
 }
 
-.info-card .tag{
-    font-size:15px;
-    color:#6B7280;
+.farm-info-card.id .farm-info-value {
+    color: #0EA5E9;
 }
 
-.info-card .value{
-    margin-top:10px;
-    font-size:36px;
-    font-weight:700;
-    color:#14532D;
+
+/* =========================
+   ADVISORY CTA
+   ========================= */
+
+.advisory-cta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1976D2;
+    color: #fff;
+    text-decoration: none;
+    padding: 18px 24px;
+    border-radius: 14px;
+    margin-bottom: 28px;
+    transition: .25s;
 }
 
-.badge{
-    display:inline-block;
-    margin-top:10px;
-    padding:5px 12px;
-    border-radius:20px;
-    background:#ECFDF5;
-    color:#15803D;
-    font-size:13px;
-    font-weight:600;
+.advisory-cta:hover {
+    background: #1565C0;
+    color: #fff;
 }
 
-.alert-card{
-    background:#FFF8E8;
-    border-left:5px solid #F59E0B;
+.advisory-cta .title {
+    font-size: 24px;
+    font-weight: 700;
 }
 
-.alert-card .tag{
-    color:#B45309;
-    font-weight:700;
-    font-size:18px;
+.advisory-cta .sub-ne {
+    margin-top: 4px;
+    font-size: 14px;
 }
 
-.alert-card .value{
-    margin-top:16px;
-    font-size:24px;
-    font-weight:600;
-    color:#92400E;
+.advisory-cta .arrow {
+    font-size: 32px;
 }
 
-.advice-row{
-    display:flex;
-    gap:24px;
-    margin-bottom:24px;
-    align-items:stretch;
+.select-label {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1565C0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
 }
 
-.advice-card{
-    flex:1;
-    background:#fff;
-    border-radius:14px;
-    padding:20px 22px;
-    min-height:150px;
-    box-shadow:0 4px 12px rgba(0,0,0,.05);
+.context-row {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 28px;
 }
 
-.advice-card .head{
-    font-size:20px;
-    font-weight:700;
-    margin-bottom:12px;
-    color:#14532D;
+.context-row select {
+    flex: 1;
+    height: 54px;
+    padding: 0 16px;
+    border: 1px solid #D7E3F4;
+    border-radius: 12px;
+    background: #FAFBFC;
+    font-size: 16px;
 }
 
-.advice-card .body{
-    font-size:17px;
-    line-height:1.7;
-    color:#4B5563;
+.context-row select:focus {
+    outline: none;
+    border-color: #1565C0;
+    box-shadow: 0 0 0 3px rgba(21,101,192,.15);
 }
 
-.sow{
-    border-left:5px solid #22C55E;
+.info-row {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 24px;
+    align-items: stretch;
 }
 
-.harvest{
-    border-left:5px solid #0EA5E9;
+.info-card {
+    flex: 1;
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px 22px;
+    border: 1px solid #EEF2F7;
+    box-shadow: 0 4px 12px rgba(0,0,0,.05);
 }
 
-.banner{
-    height:150px;
-    display:flex;
-    align-items:center;
-    padding:0 40px;
-    border-radius:16px;
-    color:#fff;
-    font-size:26px;
-    font-weight:700;
-    margin-bottom:40px;
+.info-card .tag {
+    font-size: 15px;
+    color: #6B7280;
+}
+
+.info-card .value {
+    margin-top: 10px;
+    font-size: 36px;
+    font-weight: 700;
+    color: #14532D;
+}
+
+.badge {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background: #ECFDF5;
+    color: #15803D;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.alert-card {
+    background: #FFF8E8;
+    border-left: 5px solid #F59E0B;
+}
+
+.alert-card .tag {
+    color: #B45309;
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.alert-card .value {
+    margin-top: 16px;
+    font-size: 24px;
+    font-weight: 600;
+    color: #92400E;
+}
+
+.advice-row {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 24px;
+    align-items: stretch;
+}
+
+.advice-card {
+    flex: 1;
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px 22px;
+    min-height: 150px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.05);
+}
+
+.advice-card .head {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #14532D;
+}
+
+.advice-card .body {
+    font-size: 17px;
+    line-height: 1.7;
+    color: #4B5563;
+}
+
+.sow {
+    border-left: 5px solid #22C55E;
+}
+
+.harvest {
+    border-left: 5px solid #0EA5E9;
+}
+
+.banner {
+    height: 150px;
+    display: flex;
+    align-items: center;
+    padding: 0 40px;
+    border-radius: 16px;
+    color: #fff;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 40px;
+
     background:
-    linear-gradient(rgba(21,101,192,.45),rgba(21,101,192,.45)),
-    url("https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1600")
-    center/cover;
+        linear-gradient(
+            rgba(21,101,192,.45),
+            rgba(21,101,192,.45)
+        ),
+        url("https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1600")
+        center/cover;
 }
 
 .site-nav.nav-dashboard {
-  background: linear-gradient(135deg, #1565C0, #1E88E5) !important;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.15) !important;
+    background: linear-gradient(135deg, #1565C0, #1E88E5) !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15) !important;
 }
 
-@media (max-width:900px){
+@media (max-width: 900px) {
 
-.dash-wrap{
-    width:95%;
+    .dash-wrap {
+        width: 95%;
+    }
+
+    .farm-info-strip {
+        flex-direction: column;
+    }
+
+    .context-row,
+    .info-row,
+    .advice-row {
+        flex-direction: column;
+    }
+
+    .weather-strip {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 18px;
+    }
+
+    .weather-values {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .weather-strip .humidity {
+        text-align: left;
+    }
+
+    .banner {
+        font-size: 26px;
+        height: 140px;
+    }
+
+    .greet-card h2 {
+        font-size: 28px;
+    }
+
+    .info-card .value {
+        font-size: 28px;
+    }
+
+    .alert-card .value {
+        font-size: 20px;
+    }
+
+    .advice-card .head {
+        font-size: 18px;
+    }
 }
 
-.context-row,
-.info-row,
-.advice-row{
-    flex-direction:column;
-}
-
-.weather-strip{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:18px;
-}
-
-.weather-strip .humidity{
-    text-align:left;
-}
-
-.banner{
-    font-size:26px;
-    height:140px;
-}
-
-.greet-card h2{
-    font-size:28px;
-}
-
-.info-card .value{
-    font-size:28px;
-}
-
-.alert-card .value{
-    font-size:20px;
-}
-
-.advice-card .head{
-    font-size:18px;
-}
-}
 </style>
+
 
 <div class="dash-wrap">
 
-  <div class="greet-card">
-    <div class="label">Namaste,</div>
-    <h2>Welcome, {{ farmer_name|default:"Ram Bahadur" }}</h2>
-    <div class="sub">स्वागत छ, {{ farmer_name_ne|default:"राम बहादुर" }}</div>
-    <div class="meta"><span></span>{{ district|default:"Chitwan" }}, Ward {{ ward|default:"4" }}</div>
-  </div>
+    <div class="greet-card">
 
-  <a href="/weather-data/" class="weather-strip">
-    <div class="left">
-      <div class="icon">☀️</div>
-      <div>
-        <div class="label">Current Weather</div>
-        <div class="temp">{{ district|default:"Chitwan" }}: {{ temp|default:"32°C, Sunny" }}</div>
-      </div>
-    </div>
-    <div class="humidity">
-      <div class="label">Humidity</div>
-      <div class="val">{{ humidity|default:"45%" }}</div>
-    </div>
-  </a>
+        <div class="label">
+            Namaste,
+        </div>
+        <h2>
+            Welcome, {{ farmer_name|default:"Ram Bahadur" }}
+        </h2>
 
-  <a href="/advisory/" class="advisory-cta">
-    <div>
-      <div class="title">Get New Advisory</div>
-      <div class="sub-ne">नयाँ परामर्श लिनुहोस्</div>
-    </div>
-    <div class="arrow">→</div>
-  </a>
+        <div class="sub">
+            स्वागत छ, {{ farmer_name_ne|default:"राम बहादुर" }}
+        </div>
 
-  <div class="select-label">Farm Information</div>
-  <div class="context-row">
-    <select>
-      <option>📍 {{ district|default:"Chitwan" }}</option>
-      <option>Bardiya</option>
-      <option>Rupandehi</option>
-      <option>Sunsari</option>
-    </select>
-    <select>
-      <option>🌾 {{ crop|default:"Rice (Dhan)" }}</option>
-      <option>Wheat (Gahu)</option>
-      <option>Maize (Makai)</option>
-      <option>Vegetables</option>
-    </select>
-</div>
-
-  <div class="info-row">
-    <div class="info-card">
-      <div class="tag">Market Price: Rice</div>
-      <div class="value">NPR 4,200 <span style="font-size:13px;font-weight:400;">/ quintal</span></div>
-      <span class="badge">+12%</span>
+        <div class="meta">
+            <span></span>
+            {{ profile.district.name|default:district|default:"Chitwan" }},
+            Ward {{ profile.ward|default:ward|default:"4" }}
+        </div>
     </div>
-    <div class="info-card alert-card">
-      <div class="tag">⚠ Alert</div>
-      <div class="value">Pest warning in nearby area.</div>
-    </div>
-  </div>
 
-  <div class="advice-row">
-    <div class="advice-card sow">
-      <div class="head">🚜 Sowing Advice</div>
-      <div class="body">Conditions are not ideal for sowing this week. Monitor forecast for changes.</div>
-    </div>
-    <div class="advice-card harvest">
-      <div class="head">🌾 Harvesting Advice</div>
-      <div class="body">Rain expected. Plan harvesting carefully to avoid moisture damage to crops.</div>
-    </div>
-  </div>
+    <a href="/weather-data/" class="weather-strip">
 
-  <div class="banner">Your Farm's Peak Season is Approaching</div>
+        <div class="left">
 
+            <div class="icon">
+
+                {% if weather.temperature != "--" %}
+
+                    {% if weather.temperature > 35 %}
+                        🌤️
+                    {% elif weather.rainfall > 10 %}
+                        🌧️
+                    {% else %}
+                        ☀️
+                    {% endif %}
+
+                {% else %}
+                    🌡️
+                {% endif %}
+
+            </div>
+
+            <div>
+
+                <div class="label">
+                    Live Weather —
+                    {{ profile.district.name|default:district|default:"Chitwan" }}
+                </div>
+
+                <div class="temp">
+                    {{ weather.temperature|default:"--" }}°C
+                </div>
+
+                <div class="weather-condition">
+                    {{ weather.condition|default:"Clear" }}
+                </div>
+            </div>
+        </div>
+
+        <div class="weather-values">
+
+            <div class="humidity">
+
+                <div class="label">
+                    Humidity
+                </div>
+
+                <div class="val">
+                    {{ weather.humidity|default:"--" }}%
+                </div>
+            </div>
+
+            <div class="humidity">
+
+                <div class="label">
+                    Rainfall
+                </div>
+
+                <div class="val">
+                    {{ weather.rainfall|default:"--" }}mm
+                </div>
+            </div>
+
+            <div class="humidity">
+
+                <div class="label">
+                    Wind
+                </div>
+
+                <div class="val">
+                    {{ weather.wind_speed|default:"--" }} m/s
+                </div>
+            </div>
+
+
+            <div class="weather-arrow">
+                ›
+            </div>
+        </div>
+    </a>
+
+    <div class="farm-info-strip">
+
+        <div class="farm-info-card crop">
+
+            <div class="farm-info-label">
+                Primary Crop
+            </div>
+
+            <div class="farm-info-value">
+                🌾 {{ profile.primary_crop.name }}
+            </div>
+        </div>
+
+
+        <div class="farm-info-card area">
+
+            <div class="farm-info-label">
+                Field Area
+            </div>
+
+            <div class="farm-info-value">
+                {{ profile.field_area }} Ropani
+            </div>
+        </div>
+
+
+        <div class="farm-info-card soil">
+
+            <div class="farm-info-label">
+                Soil Type
+            </div>
+
+            <div class="farm-info-value">
+                🌱 {{ profile.soil_type|capfirst }}
+            </div>
+        </div>
+
+
+        <div class="farm-info-card id">
+
+            <div class="farm-info-label">
+                Farmer ID
+            </div>
+
+            <div class="farm-info-value">
+                {{ profile.farmer_id }}
+            </div>
+        </div>
+    </div>
+
+    <a href="/advisory/" class="advisory-cta">
+
+        <div>
+
+            <div class="title">
+                Get New Advisory
+            </div>
+
+            <div class="sub-ne">
+                नयाँ परामर्श लिनुहोस्
+            </div>
+        </div>
+
+        <div class="arrow">
+            →
+        </div>
+    </a>
+
+    <div class="select-label">
+        Farm Information
+    </div>
+
+
+    <div class="context-row">
+
+        <select>
+
+            <option>
+                📍 {{ profile.district.name|default:district|default:"Chitwan" }}
+            </option>
+
+            <option>Bardiya</option>
+            <option>Rupandehi</option>
+            <option>Sunsari</option>
+
+        </select>
+
+
+        <select>
+
+            <option>
+                🌾 {{ profile.primary_crop.name|default:crop|default:"Rice (Dhan)" }}
+            </option>
+
+            <option>Wheat (Gahu)</option>
+            <option>Maize (Makai)</option>
+            <option>Vegetables</option>
+
+        </select>
+
+    </div>
+
+    <div class="info-row">
+
+        <div class="info-card">
+
+            <div class="tag">
+                Market Price: Rice
+            </div>
+
+            <div class="value">
+                NPR 4,200
+                <span style="font-size:13px;font-weight:400;">
+                    / quintal
+                </span>
+            </div>
+
+            <span class="badge">
+                +12%
+            </span>
+        </div>
+
+
+        <div class="info-card alert-card">
+
+            <div class="tag">
+                ⚠ Alert
+            </div>
+
+            <div class="value">
+                Pest warning in nearby area.
+            </div>
+        </div>
+    </div>
+
+    <div class="advice-row">
+
+        <div class="advice-card sow">
+
+            <div class="head">
+                🚜 Sowing Advice
+            </div>
+
+            <div class="body">
+                Conditions are not ideal for sowing this week.
+                Monitor forecast for changes.
+            </div>
+        </div>
+
+
+        <div class="advice-card harvest">
+
+            <div class="head">
+                🌾 Harvesting Advice
+            </div>
+
+            <div class="body">
+                Rain expected. Plan harvesting carefully to avoid
+                moisture damage to crops.
+            </div>
+        </div>
+    </div>
+
+    <div class="banner">
+        Your Farm's Peak Season is Approaching
+    </div>
 </div>
 {% endblock %}
