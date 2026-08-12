@@ -9,6 +9,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.core.cache import cache
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST, require_GET
 
 from .models import (
     District,
@@ -716,3 +718,138 @@ def chatbot_clear_history(request):
             "success": True
         }
     )
+    
+from .services import (
+    fetch_current_weather, fetch_forecast,
+    get_crop_price, generate_notifications,
+    get_dashboard_headline, get_soil_care,
+    get_sowing_harvesting_advice
+)
+from .models import FarmerProfile, FarmerCrop, Crop, District
+
+
+@login_required(login_url="/login/")
+def dashboard_view(request):
+    profile = FarmerProfile.objects.select_related(
+        'user', 'district', 'primary_crop'
+    ).get(user=request.user)
+
+    farm_crops = FarmerCrop.objects.filter(
+        farmer=profile
+    ).select_related('crop').order_by('-added_at')
+
+    all_crops = Crop.objects.all()
+    added_crop_ids = set(fc.crop_id for fc in farm_crops if fc.status == 'active')
+    not_added_crops = all_crops.exclude(id__in=added_crop_ids)
+    # Also exclude primary crop from "not added"
+    if profile.primary_crop:
+        not_added_crops = not_added_crops.exclude(id=profile.primary_crop_id)
+
+    weather = None
+    forecast = None
+    if profile.district:
+        weather = fetch_current_weather(
+            profile.district.latitude,
+            profile.district.longitude,
+            profile.district.name
+        )
+        forecast = fetch_forecast(
+            profile.district.latitude,
+            profile.district.longitude
+        )
+
+    notifications = generate_notifications(profile, weather, farm_crops)
+    headline, headline_type = get_dashboard_headline(weather, profile, farm_crops)
+    soil_care = get_soil_care(profile.soil_type, weather)
+
+    # Prices for active crops
+    prices = {}
+    active_crops = [fc.crop for fc in farm_crops if fc.status == 'active']
+    if profile.primary_crop and profile.primary_crop not in active_crops:
+        active_crops.insert(0, profile.primary_crop)
+    for crop in active_crops:
+        price = get_crop_price(crop.name, profile.district.name if profile.district else "")
+        if price:
+            prices[crop.name] = price
+
+    # Sowing/harvesting advice per active crop
+    sow_harvest = {}
+    for crop in active_crops:
+        advice = get_sowing_harvesting_advice(crop.name, weather)
+        if advice:
+            sow_harvest[crop.name] = advice
+
+    return render(request, "advisory/dashboard.html", {
+        "profile": profile,
+        "farm_crops": farm_crops,
+        "not_added_crops": not_added_crops,
+        "all_crops": all_crops,
+        "weather": weather,
+        "forecast": forecast,
+        "notifications": notifications,
+        "headline": headline,
+        "headline_type": headline_type,
+        "soil_care": soil_care,
+        "prices": prices,
+        "sow_harvest": sow_harvest,
+        "active_crops": active_crops,
+    })
+
+
+@login_required(login_url="/login/")
+@require_POST
+def add_farm_crop(request):
+    """AJAX: Add a crop to farmer's farm_crops."""
+    try:
+        data = json.loads(request.body)
+        crop_id = data.get("crop_id")
+        crop = Crop.objects.get(id=crop_id)
+        profile = FarmerProfile.objects.get(user=request.user)
+
+        # Don't duplicate active crops
+        existing = FarmerCrop.objects.filter(
+            farmer=profile, crop=crop, status='active'
+        ).first()
+        if existing:
+            return JsonResponse({"ok": False, "error": "Crop already active on your farm."})
+
+        FarmerCrop.objects.create(farmer=profile, crop=crop, status='active')
+        return JsonResponse({"ok": True, "crop_name": crop.name, "crop_id": crop.id})
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)})
+
+
+@login_required(login_url="/login/")
+@require_POST
+def remove_farm_crop(request):
+    """AJAX: Remove/cancel/mark-harvested a farm crop."""
+    try:
+        data = json.loads(request.body)
+        farm_crop_id = data.get("farm_crop_id")
+        action = data.get("action", "cancelled")  # cancelled | completed
+        fc = FarmerCrop.objects.get(id=farm_crop_id, farmer__user=request.user)
+        fc.status = action
+        fc.save()
+        return JsonResponse({"ok": True})
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)})
+
+
+@login_required(login_url="/login/")
+def weather_forecast_view(request):
+    """7-day forecast page."""
+    profile = FarmerProfile.objects.select_related('district').get(user=request.user)
+    forecast = None
+    weather = None
+    if profile.district:
+        weather = fetch_current_weather(
+            profile.district.latitude, profile.district.longitude
+        )
+        forecast = fetch_forecast(
+            profile.district.latitude, profile.district.longitude
+        )
+    return render(request, "advisory/weather_forecast.html", {
+        "profile": profile,
+        "weather": weather,
+        "forecast": forecast,
+    })

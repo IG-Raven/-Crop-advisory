@@ -18,6 +18,9 @@ urlpatterns = [
     path("logout/", views.logout_view, name="logout"),
     path("chatbot/message/", views.chatbot_message, name="chatbot_message"),
     path("chatbot/history/", views.chatbot_history, name="chatbot_history"),
+    path("dashboard/add-crop/",  views.add_farm_crop,       name="add_farm_crop"),
+    path("dashboard/remove-crop/", views.remove_farm_crop,  name="remove_farm_crop"),
+    path("weather-forecast/",    views.weather_forecast_view, name="weather_forecast"),
 ]
 
 if settings.DEBUG:
