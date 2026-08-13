@@ -138,6 +138,24 @@
     font-weight: 500;
   }
 
+  .error-box {
+    background:#FEE2E2; border:1px solid #FECACA;
+    border-radius:8px; padding:10px 14px;
+    font-size:13px; color:#991B1B; margin-bottom:16px;
+  }
+
+  .password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    line-height: 1;
+  }
 </style>
 
 <div class="login-page">
@@ -171,8 +189,9 @@
         <label class="form-label">Password</label>
         <div class="input-icon-wrap">
           <span class="icon">🔒</span>
-          <input type="password" name="password" class="form-control"
-                 placeholder="••••••••" required>
+          <input type="password" name="password" id="loginPassword" class="form-control"
+                 style="padding-right:38px;" placeholder="••••••••" required>
+          <button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)">👁</button>
         </div>
       </div>
 
@@ -196,4 +215,17 @@
 
   </div>
 </div>
+
+<script>
+function togglePassword(fieldId, btn) {
+  const field = document.getElementById(fieldId);
+  if (field.type === 'password') {
+    field.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    field.type = 'password';
+    btn.textContent = '👁';
+  }
+}
+</script>
 {% endblock %}

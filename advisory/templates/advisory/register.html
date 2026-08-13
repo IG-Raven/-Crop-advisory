@@ -83,6 +83,23 @@
     border-radius:8px; padding:10px 14px;
     font-size:13px; color:#991B1B; margin-bottom:16px;
   }
+
+  .password-field-wrap {
+    position: relative;
+  }
+
+  .password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    line-height: 1;
+  }
 </style>
 
 <div class="reg-page">
@@ -177,31 +194,36 @@
 
       <div class="mb-3">
         <label for="password" class="form-label">Password *</label>
-        <input
-            type="password"
-            class="form-control"
-            id="password"
-            name="password"
-            minlength="8"
-            required
-        >
-        <button type="button" class="password-toggle" onclick="togglePassword('password', this)">👁️</button>
+        <div class="password-field-wrap">
+          <input
+              type="password"
+              class="form-control"
+              id="password"
+              name="password"
+              style="padding-right:38px;"
+              minlength="8"
+              required
+          >
+          <button type="button" class="password-toggle" onclick="togglePassword('password', this)">👁</button>
         </div>
         <small class="text-muted">Minimum 8 characters.</small>
     </div>
     
     <div class="mb-3">
         <label for="confirm_password" class="form-label">Confirm Password *</label>
-        <input
-            type="password"
-            class="form-control"
-            id="confirm_password"
-            name="confirm_password"
-            minlength="8"
-            required
-        >
-        <button type="button" class="password-toggle" onclick="togglePassword('confirm_password', this)">👁️</button>
+        <div class="password-field-wrap">
+          <input
+              type="password"
+              class="form-control"
+              id="confirm_password"
+              name="confirm_password"
+              style="padding-right:38px;"
+              minlength="8"
+              required
+          >
+          <button type="button" class="password-toggle" onclick="togglePassword('confirm_password', this)">👁</button>
         </div>
+        
         <div id="passwordError" class="text-danger" style="display:none;">
             Passwords do not match.
         </div>
@@ -240,7 +262,7 @@
                 button.textContent = "🙈";
             } else {
                 field.type = "password";
-                button.textContent = "👁️";
+                button.textContent = "👁";
             }
         }
       </script>
