@@ -182,8 +182,12 @@
             class="form-control"
             id="password"
             name="password"
+            minlength="8"
             required
         >
+        <button type="button" class="password-toggle" onclick="togglePassword('password', this)">👁️</button>
+        </div>
+        <small class="text-muted">Minimum 8 characters.</small>
     </div>
     
     <div class="mb-3">
@@ -193,8 +197,11 @@
             class="form-control"
             id="confirm_password"
             name="confirm_password"
+            minlength="8"
             required
         >
+        <button type="button" class="password-toggle" onclick="togglePassword('confirm_password', this)">👁️</button>
+        </div>
         <div id="passwordError" class="text-danger" style="display:none;">
             Passwords do not match.
         </div>
@@ -225,6 +232,17 @@
         
             passwordError.style.display = "none";
         });
+
+        function togglePassword(fieldId, button) {
+            const field = document.getElementById(fieldId);
+            if (field.type === "password") {
+                field.type = "text";
+                button.textContent = "🙈";
+            } else {
+                field.type = "password";
+                button.textContent = "👁️";
+            }
+        }
       </script>
     </form>
 
