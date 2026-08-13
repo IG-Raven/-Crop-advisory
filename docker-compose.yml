@@ -1,5 +1,8 @@
 services:
   web:
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     build: .
     env_file:
       - .env
