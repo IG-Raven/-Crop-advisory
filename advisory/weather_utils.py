@@ -4,7 +4,7 @@ import os
 API_KEY = "7103d0188bf0135147d3a10001003642"
 
 def fetch_weather(lat, lon):
-    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API_KEY}&units=metric"
+    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={OPENWEATHERMAP_API_KEY}&units=metric"
     try:
         response = requests.get(url, timeout=5)
         data = response.json()

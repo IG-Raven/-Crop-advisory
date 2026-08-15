@@ -1,6 +1,7 @@
 Django==4.2
 requests==2.31.0
 numpy
+rasterio
 scikit-learn
 accelerate>=1.1.0
 datasets>=2.14.0
