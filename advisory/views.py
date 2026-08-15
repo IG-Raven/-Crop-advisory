@@ -11,6 +11,8 @@ from django.shortcuts import render, redirect
 from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
+from .advisory_engine import get_advisory_with_soil, get_advisory
+from .soil_service import get_clay_content, classify_soil_from_clay, get_soil_interpretation
 
 from .models import (
     District,
@@ -22,7 +24,6 @@ from .models import (
 )
 
 from .weather_utils import fetch_weather
-from .advisory_engine import get_advisory
 
 
 BASE_DIR = os.path.dirname(
@@ -383,6 +384,19 @@ def dashboard_view(request):
         print(
             f"Dashboard error: {e}"
         )
+        
+        # Get real soil data from clay.tif
+        soil_data = None
+        soil_interpretation = None
+        if profile.district:
+            soil_data = get_clay_content(
+                profile.district.latitude,
+                profile.district.longitude
+            )
+            if soil_data and soil_data.get("available"):
+                soil_interpretation = get_soil_interpretation(
+                    soil_data["clay_percent"]
+                )
 
     return render(
         request,
@@ -391,6 +405,8 @@ def dashboard_view(request):
             "profile": profile,
             "weather": weather,
             "advisory": advisory,
+            "soil_data": soil_data,
+            "soil_interpretation": soil_interpretation,
         }
     )
 
@@ -483,57 +499,35 @@ def more_options_view(request):
 def results(request):
 
     if request.method == "POST":
-
-        district_name = request.POST.get(
-            "district"
-        )
-
-        crop_name = request.POST.get(
-            "crop"
-        )
-
+        district_name = request.POST.get("district")
+        crop_name = request.POST.get("crop")
         try:
+            district = District.objects.get(name=district_name)
+            crop = Crop.objects.get(name=crop_name)
+            weather = fetch_weather(district.latitude, district.longitude)
 
-            district = District.objects.get(
-                name=district_name
-            )
+            # Get real soil data from clay.tif
+            clay_data = get_clay_content(district.latitude, district.longitude)
+            clay_percent = None
+            if clay_data and clay_data.get("available"):
+                clay_percent = clay_data["clay_percent"]
 
-            crop = Crop.objects.get(
-                name=crop_name
-            )
+            # Enhanced advisory with soil data
+            advisory = get_advisory_with_soil(crop_name, weather, clay_percent)
 
-            weather = fetch_weather(
-                district.latitude,
-                district.longitude
-            )
-
-            advisory = get_advisory(
-                crop_name,
-                weather
-            )
-
-            return render(
-                request,
-                "advisory/results.html",
-                {
-                    "district": district,
-                    "crop": crop,
-                    "weather": weather,
-                    "advisory": advisory,
-                }
-            )
-
+            return render(request, "advisory/results.html", {
+                "district": district,
+                "crop": crop,
+                "weather": weather,
+                "advisory": advisory,
+                "clay_data": clay_data,
+            })
         except Exception as e:
-
-            return render(
-                request,
-                "advisory/home.html",
-                {
-                    "districts": District.objects.all(),
-                    "crops": Crop.objects.all(),
-                    "error": str(e),
-                }
-            )
+            return render(request, "advisory/home.html", {
+                "districts": District.objects.all(),
+                "crops": Crop.objects.all(),
+                "error": str(e),
+            })
 
     return redirect("/")
 

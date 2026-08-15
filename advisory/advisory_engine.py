@@ -142,3 +142,50 @@ def get_context_lines(temp, rain, humidity, crop_name, severity):
         )
 
     return lines
+
+def get_advisory_with_soil(crop_name, weather, clay_percent=None):
+    """
+    Enhanced advisory that incorporates real soil clay content
+    when available from clay.tif.
+    """
+    # Get standard weather-based advisory first
+    advisory = get_advisory(crop_name, weather)
+
+    # Add soil-based enhancement if clay data available
+    if clay_percent is not None:
+        soil_notes = []
+
+        if crop_name == "Rice" and clay_percent >= 35:
+            soil_notes.append(
+                f"Soil analysis confirms {clay_percent}% clay content — "
+                "excellent water retention for rice paddy. Maintain 5cm "
+                "standing water with minimal top-up irrigation needed."
+            )
+        elif crop_name == "Rice" and clay_percent < 20:
+            soil_notes.append(
+                f"Soil clay content is low ({clay_percent}%) — sandy. "
+                "Rice will need frequent irrigation as soil cannot retain "
+                "paddy water. Consider puddling (repeated wet tillage) to "
+                "create an impermeable layer before transplanting."
+            )
+
+        if crop_name == "Wheat" and clay_percent >= 40:
+            soil_notes.append(
+                f"High clay content ({clay_percent}%) may cause waterlogging "
+                "for wheat. Ensure ridge-and-furrow planting and clear "
+                "drainage before sowing."
+            )
+
+        if crop_name == "Vegetables" and clay_percent >= 35:
+            soil_notes.append(
+                f"Clay content {clay_percent}% is high for vegetables. "
+                "Use raised beds (20–25cm height) to improve drainage "
+                "and prevent root rot."
+            )
+
+        if soil_notes:
+            advisory["recommendations"] = soil_notes + advisory["recommendations"]
+            advisory["soil_enhanced"] = True
+            advisory["clay_percent"] = clay_percent
+
+    return advisory
